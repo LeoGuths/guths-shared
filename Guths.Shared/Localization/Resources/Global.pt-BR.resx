@@ -1,0 +1,170 @@
+<root>
+    <data name="IdRequired" xml:space="preserve">
+        <value>O ID é obrigatório</value>
+    </data>
+    <data name="FinancialEntryNotFound" xml:space="preserve">
+        <value>Registro financeiro não encontrado</value>
+    </data>
+    <data name="FinancialEntryOperationMustBe" xml:space="preserve">
+        <value>A operação do registro deve ser {0}, {1}, {2} ou {3}.</value>
+    </data>
+    <data name="FinancialEntryValuePositive" xml:space="preserve">
+        <value>O valor do registro deve ser positivo.</value>
+    </data>
+    <data name="NameRequired" xml:space="preserve">
+        <value>O nome é obrigatório</value>
+    </data>
+    <data name="NameMaxCharacters" xml:space="preserve">
+        <value>O nome deve ter no máximo {0} caracteres</value>
+    </data>
+    <data name="TenantIdRequired" xml:space="preserve">
+        <value>O ID do Tenant é obrigatório.</value>
+    </data>
+    <data name="EmailRequired" xml:space="preserve">
+        <value>O email é obrigatório.</value>
+    </data>
+    <data name="BirthdayDateLessThanOrEqualToToday" xml:space="preserve">
+        <value>A data de nascimento não pode ser maior que a data atual.</value>
+    </data>
+    <data name="PictureFileRequired" xml:space="preserve">
+        <value>O arquivo de imagem é obrigatório</value>
+    </data>
+    <data name="PictureFileSupported" xml:space="preserve">
+        <value>O formato arquivo de imagem deve ser {0}</value>
+    </data>
+    <data name="UserIdRequired" xml:space="preserve">
+        <value>O ID do Usuário é obrigatório</value>
+    </data>
+    <data name="UserNotFound" xml:space="preserve">
+        <value>Usuário não encontrado</value>
+    </data>
+    <data name="UserAlreadyActive" xml:space="preserve">
+        <value>Usuário já está ativado</value>
+    </data>
+    <data name="UserAlreadyDeactivated" xml:space="preserve">
+        <value>Usuário já está desativado</value>
+    </data>
+    <data name="Petrol" xml:space="preserve">
+        <value>Gasolina</value>
+    </data>
+    <data name="Ethanol" xml:space="preserve">
+        <value>Etanol</value>
+    </data>
+    <data name="PetrolGreaterThanZero" xml:space="preserve">
+        <value>O preço da Gasolina deve ser maior que zero.</value>
+    </data>
+    <data name="EthanolGreaterThanZero" xml:space="preserve">
+        <value>O preço do Etanol deve ser maior que zero.</value>
+    </data>
+    <data name="CustomEfficiencyGreaterThanZero" xml:space="preserve">
+        <value>A Eficiência Personalizada deve ser maior que zero.</value>
+    </data>
+    <data name="MostAdvantageousFuel" xml:space="preserve">
+        <value>Com base na eficiência de {0}, o {1} é mais vantajoso, pois o preço equivalente é {2}.</value>
+    </data>
+    <data name="ReceiptFileRequired" xml:space="preserve">
+        <value>O arquivo de recibo é obrigatório</value>
+    </data>
+    <data name="ReceiptFileSupported" xml:space="preserve">
+        <value>O formato arquivo de recibo deve ser {0}</value>
+    </data>
+    <data name="PaymentReceiptNotFound" xml:space="preserve">
+        <value>Recibo de pagamento não encontrado</value>
+    </data>
+    <data name="StartDayOfMonthBetween" xml:space="preserve">
+        <value>O primeiro dia do mês deve estar entre 1 e 28.</value>
+    </data>
+    <data name="SpendingAreaRequired" xml:space="preserve">
+        <value>O área de gasto é obrigatória para esse tipo de registro.</value>
+    </data>
+    <data name="SpendingPurposeRequired" xml:space="preserve">
+        <value>A finalidade do gasto é obrigatória para esse tipo de registro.</value>
+    </data>
+    <data name="PaymentStatusNotAllowed" xml:space="preserve">
+        <value>O status de pagamento não deve ser preenchido para entradas do tipo Receita ou Despesa no Cartão.</value>
+    </data>
+    <data name="UserSettingsNotFound" xml:space="preserve">
+        <value>As configurações do usuário não foram encontradas.</value>
+    </data>
+    <data name="SpendingAreaMustBeEmptyWhenIncome" xml:space="preserve">
+      <value>O campo 'Área do gasto' não deve ser informado para receitas.</value>
+    </data>
+    <data name="SpendingPurposeMustBeEmptyWhenIncome" xml:space="preserve">
+      <value>O campo 'Finalidade do gasto' não deve ser informado para receitas.</value>
+    </data>
+    <data name="EmailAlreadyRegistered" xml:space="preserve">
+        <value>Email já registrado.</value>
+    </data>
+    <data name="CellphoneAlreadyRegistered" xml:space="preserve">
+        <value>Celular já registrado.</value>
+    </data>
+    <data name="UserAlreadyConfirmed" xml:space="preserve">
+        <value>Usuário já está confirmado.</value>
+    </data>
+    <data name="VerificationCodeRequired" xml:space="preserve">
+        <value>Código de verificação é obrigatório.</value>
+    </data>
+    <data name="InvalidOrExpiredVerificationCode" xml:space="preserve">
+        <value>Código de verificação inválido ou expirado.</value>
+    </data>
+    <data name="VerificationCodeAlreadyUsed" xml:space="preserve">
+        <value>Código de verificação já utilizado.</value>
+    </data>
+    <data name="UserIsDeactivated" xml:space="preserve">
+        <value>Esse usuário está desativado.</value>
+    </data>
+    <data name="RefreshTokenRequired" xml:space="preserve">
+      <value>O RefreshToken não pode ser nulo ou vazio.</value>
+    </data>
+    <data name="FinancialEntryIdIsRequired" xml:space="preserve">
+      <value>O ID do Registro Financeiro é obrigatório.</value>
+    </data>
+    <data name="PageNumberMustBeGreaterThanZero" xml:space="preserve">
+      <value>O número da página deve ser maior que zero.</value>
+    </data>
+    <data name="PageSizeMustBeBetween" xml:space="preserve">
+      <value>O tamanho da página deve estar entre {0} e {1}.</value>
+    </data>
+    <data name="FileTooLarge" xml:space="preserve">
+      <value>O arquivo é muito grande.</value>
+    </data>
+    <data name="FileIsEmpty" xml:space="preserve">
+      <value>O arquivo está vazio.</value>
+    </data>
+    <data name="FileNameTooLong" xml:space="preserve">
+      <value>O nome do arquivo é muito longo.</value>
+    </data>
+    <data name="FileNameContainsInvalidCharacters" xml:space="preserve">
+      <value>O nome do arquivo contém caracteres inválidos.</value>
+    </data>
+    <data name="TimeZoneIdRequired" xml:space="preserve">
+      <value>Id do Time Zone é obrigatório.</value>
+    </data>
+        <data name="MonthOutOfRange" xml:space="preserve">
+      <value>Mês deve estar entre 1 e 12.</value>
+    </data>
+        <data name="YearCannotBeInFuture" xml:space="preserve">
+      <value>Ano não pode ser maior do que o ano atual.</value>
+    </data>
+        <data name="MonthYearCannotBeInFuture" xml:space="preserve">
+      <value>Mês e ano não podem ser maiores do que o mês e ano atual.</value>
+    </data>
+    <data name="FileNotFound" xml:space="preserve">
+      <value>Arquivo não encontrado.</value>
+    </data>
+    <data name="MonthIsRequired" xml:space="preserve">
+      <value>Mês é obrigatório</value>
+    </data>
+    <data name="YearIsRequired" xml:space="preserve">
+      <value>Ano é obrigatório</value>
+    </data>
+    <data name="EmailToIsRequired" xml:space="preserve">
+      <value>O destinatário é obrigatório.</value>
+    </data>
+        <data name="EmailSubjectIsRequired" xml:space="preserve">
+      <value>O assunto é obrigatório.</value>
+    </data>
+        <data name="EmailHtmlBodyIsRequired" xml:space="preserve">
+      <value>O corpo do e-mail é obrigatório.</value>
+    </data>
+</root>

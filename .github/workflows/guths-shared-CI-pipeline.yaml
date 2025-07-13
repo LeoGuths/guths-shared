@@ -1,0 +1,30 @@
+name: Guths Shared CI
+
+on:
+  pull_request:
+    branches: ['develop', 'master']
+
+env:
+  SOLUTION_PATH: ./
+
+jobs:
+  test:
+    name: Run Tests and Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .Net
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: |
+          dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Run Tests
+        run: |
+          dotnet test ${{ env.SOLUTION_PATH }} --no-build --verbosity normal
