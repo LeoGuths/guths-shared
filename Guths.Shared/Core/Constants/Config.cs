@@ -6,9 +6,6 @@ public static class Config
     {
         public const string MongoConnectionString = "DatabaseConnection:MongoDbConnectionString";
         public const string MongoDb = "DatabaseConnection:MongoDbDatabaseName";
-
-        public const string CloudApplicationConfig = "AmazonSystemsStore";
-        public const string LocalApplicationConfig = "appsettings.Local.json";
     }
 
     public static class Claim

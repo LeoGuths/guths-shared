@@ -2,7 +2,7 @@ name: Guths Shared CD
 
 on:
   push:
-    branches: ['master', 'develop']
+    branches: ['master']
 
 env:
   PROJECT_PATH: Guths.Shared
