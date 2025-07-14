@@ -26,12 +26,10 @@ jobs:
       - name: Build Release
         run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
         
-      - name: Create NuGet Package
-        run: dotnet pack ${{ env.PROJECT_PATH }} -c Release --no-build --output nupkgs
-          
-      - name: Publish to GitHub Packages
+      - name: Publish NuGet Package
         run: |
-          dotnet nuget push ./nupkgs/*.nupkg \
-            --skip-duplicate \
+          cd ${{ env.PROJECT_PATH }}/out
+          dotnet nuget push *.nupkg \
             --api-key ${{ secrets.GITHUB_TOKEN }} \
-            --source ${{ env.NUGET_SOURCE }}
+            --source "https://nuget.pkg.github.com/${{ github.REPOSITORY_OWNER }}/index.json" \
+            --skip-duplicate
