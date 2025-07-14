@@ -11,7 +11,7 @@
         <Authors>LeoGuths</Authors>
         <RepositoryUrl>https://github.com/LeoGuths/guths-shared</RepositoryUrl>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>MyWalletMyMoney.MyWalletApi</RootNamespace>
+        <RootNamespace>Guths.Shared</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

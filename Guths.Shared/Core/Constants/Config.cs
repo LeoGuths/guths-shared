@@ -18,15 +18,7 @@ public static class Config
         public const string ClientIdClaimType = "client_id";
         public const string ResourceIdClaimType = "resource_id";
         public const string UserTokenTypeClaimType = "typ";
-        public const string JtiClaimType = "jti";
 
         public const string RefreshToken = "refresh";
-        public const string User = "user";
-        public const string System = "system";
-    }
-
-    public static class Scope
-    {
-        public const string SendEmail = "send_email";
     }
 }
