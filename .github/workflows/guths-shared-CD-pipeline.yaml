@@ -32,7 +32,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           cd ${{ env.PROJECT_PATH }}/out
-          dotnet nuget push *.nupkg \
+          dotnet nuget push ./nupkgs/*.nupkg \
             --api-key ${{ secrets.GITHUB_TOKEN }} \
             --source "https://nuget.pkg.github.com/${{ github.REPOSITORY_OWNER }}/index.json" \
             --skip-duplicate
