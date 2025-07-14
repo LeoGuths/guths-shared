@@ -26,7 +26,10 @@ jobs:
       - name: Build Release
         run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
         
-      - name: Publish NuGet Package
+      - name: Create NuGet Package
+        run: dotnet pack ${{ env.PROJECT_PATH }} -c Release --no-build --output nupkgs
+
+      - name: Publish to GitHub Packages
         run: |
           cd ${{ env.PROJECT_PATH }}/out
           dotnet nuget push *.nupkg \
