@@ -7,7 +7,7 @@
         <IsPackable>true</IsPackable>
 
         <PackageId>Guths.Shared</PackageId>
-        <Version>0.1.3</Version>
+        <Version>0.1.4</Version>
         <Authors>LeoGuths</Authors>
         <RepositoryUrl>https://github.com/LeoGuths/guths-shared</RepositoryUrl>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

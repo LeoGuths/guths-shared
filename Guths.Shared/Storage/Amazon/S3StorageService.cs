@@ -4,10 +4,9 @@ using Amazon.S3.Util;
 
 using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
-using Guths.Shared.Localization.Resources;
+using Guths.Shared.Core.Exceptions;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable ConvertToUsingDeclaration
@@ -19,14 +18,11 @@ public sealed class S3StorageService : IStorageService
     private readonly IAmazonS3 _s3Client;
     private readonly S3StorageOptions _s3StorageOptions;
     private const string OriginalFileNameMetadata = "original-filename";
-    private readonly IStringLocalizer<Global> _localizer;
 
     public S3StorageService(IAmazonS3 s3Client,
-        IOptionsSnapshot<S3StorageOptions> s3StorageOptions,
-        IStringLocalizer<Global> localizer)
+        IOptionsSnapshot<S3StorageOptions> s3StorageOptions)
     {
         _s3Client = s3Client;
-        _localizer = localizer;
         _s3StorageOptions = s3StorageOptions.Value;
 
         EnsureBucketExistsAsync(_s3StorageOptions.BucketName).GetAwaiter().GetResult();
@@ -103,7 +99,7 @@ public sealed class S3StorageService : IStorageService
         catch (Exception)
         {
             // _logger.LogError(e, msg);
-            return (_localizer["FileNotFound"], null);
+            throw new ProblemException(error: "STORAGE-FILE-NOT-FOUND", message: $"File not found. Filename {fileName}");
         }
     }
 
