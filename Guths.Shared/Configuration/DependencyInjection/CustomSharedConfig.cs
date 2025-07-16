@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Carter;
+
 using Guths.Shared.Authentication.OpenApi;
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Web.Handlers;
@@ -32,13 +34,24 @@ public static class CustomSharedConfig
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
-        services.AddLocalizationConfiguration();
+
+        if (options.UseLocalization)
+            services.AddLocalizationConfiguration();
+
         services.AddJsonConfiguration();
-        services.AddOpenApi(opts =>
-        {
-            opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-        });
-        services.AddControllerConfiguration();
+
+        if (options.UseScalar)
+            services.AddOpenApi(opts =>
+            {
+                opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+            });
+
+        if (options.UseControllers)
+            services.AddControllerConfiguration();
+
+        if (options.UseEndpoints)
+            services.AddCarter();
+
         services.AddDefaultResilienceConfiguration();
     }
 
@@ -55,10 +68,19 @@ public static class CustomSharedConfig
         if(options.UseCors)
             app.UseCors(Const.Application.CorsPolicyName);
 
-        app.AddScalarConfiguration(projectName);
+        if (options.UseScalar)
+            app.AddScalarConfiguration(projectName);
+
         app.UseExceptionHandler();
-        app.MapControllers();
-        app.AddLocalizationSupport();
+
+        if (options.UseControllers)
+            app.MapControllers();
+
+        if (options.UseEndpoints)
+            app.MapCarter();
+
+        if (options.UseLocalization)
+            app.AddLocalizationSupport();
     }
 }
 
@@ -67,6 +89,10 @@ public sealed class SharedConfigurationOptions
     public bool UseCache { get; init; } = true;
     public bool UseAuth { get; init; } = true;
     public bool UseCors { get; init; } = true;
+    public bool UseControllers { get; init; } = true;
+    public bool UseEndpoints { get; init; } = false;
+    public bool UseLocalization { get; init; } = true;
+    public bool UseScalar { get; init; } = true;
 
     public Action<AuthorizationOptions>? ConfigureAuthorization { get; init; }
 }
