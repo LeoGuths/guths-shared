@@ -49,3 +49,22 @@ jobs:
                  }]
                }' \
                ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Discord Failure Notification
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "❌ Falha na Publicação",
+                   "color": 15158332,
+                   "fields": [
+                     {"name": "📦 Projeto", "value": "${{ env.PROJECT_PATH }}", "inline": true},
+                     {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                     {"name": "🔗 Commit", "value": "[`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false},
+                     {"name": "📋 Logs", "value": "[Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+                   ],
+                   "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'"
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
