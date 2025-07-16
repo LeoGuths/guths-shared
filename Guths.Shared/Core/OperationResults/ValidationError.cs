@@ -1,4 +1,4 @@
-namespace Guths.Shared.Core.Results;
+namespace Guths.Shared.Core.OperationResults;
 
 public sealed class ValidationError
 {

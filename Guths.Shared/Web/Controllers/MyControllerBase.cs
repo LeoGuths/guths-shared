@@ -1,10 +1,8 @@
 using Guths.Shared.Core.Constants;
-using Guths.Shared.Core.Results;
+using Guths.Shared.Core.OperationResults;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-using IResult = Guths.Shared.Core.Results.IResult;
 
 namespace Guths.Shared.Web.Controllers;
 
@@ -14,43 +12,43 @@ public abstract class MyControllerBase : Controller
 {
     private const string ProblemTypeBadRequest = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
 
-    protected IActionResult CustomPostResponse<T>(Result<T> result) where T : class
+    protected IActionResult CustomPostResponse<T>(OperationResult<T> operationResult) where T : class
     {
-        if (result.IsForbidden)
+        if (operationResult.IsForbidden)
             return Forbid();
 
-        if (!result.IsSuccess)
-            return GetBadRequestResult(result);
+        if (!operationResult.IsSuccess)
+            return GetBadRequestResult(operationResult);
 
-        if (result.Value is null)
+        if (operationResult.Value is null)
             return NoContent();
 
-        return Ok(result.Value);
+        return Ok(operationResult.Value);
     }
 
-    protected IActionResult CustomPostResponse(Result result)
+    protected IActionResult CustomPostResponse(OperationResult operationResult)
     {
-        if (result.IsForbidden)
+        if (operationResult.IsForbidden)
             return Forbid();
 
-        return !result.IsSuccess
-            ? GetFailResult(result)
+        return !operationResult.IsSuccess
+            ? GetFailResult(operationResult)
             : NoContent();
     }
 
-    protected IActionResult CustomGetResponse<T>(Result<T> result) where T : class =>
-        !result.IsSuccess
-            ? GetFailResult(result)
-            : Ok(result.Value);
+    protected IActionResult CustomGetResponse<T>(OperationResult<T> operationResult) where T : class =>
+        !operationResult.IsSuccess
+            ? GetFailResult(operationResult)
+            : Ok(operationResult.Value);
 
-    protected IActionResult CustomUpsertResponse(Result result)
-        => !result.IsSuccess
-            ? GetFailResult(result)
+    protected IActionResult CustomUpsertResponse(OperationResult operationResult)
+        => !operationResult.IsSuccess
+            ? GetFailResult(operationResult)
             : NoContent();
 
-    protected IActionResult CustomDeleteResponse(Result result) =>
-        !result.IsSuccess
-            ? GetFailResult(result)
+    protected IActionResult CustomDeleteResponse(OperationResult operationResult) =>
+        !operationResult.IsSuccess
+            ? GetFailResult(operationResult)
             : NoContent();
 
     // protected IActionResult CustomFileResponse(byte[]? result, string fileName, string contentType = MediaTypeNames.Text.Csv, string extension = "csv")
@@ -71,16 +69,16 @@ public abstract class MyControllerBase : Controller
     protected string GetTimeZoneId() =>
         Request.Headers[Const.Api.Header.UserTimeZoneHeaderName].FirstOrDefault() ?? Const.TimeAndDate.DefaultTimeZoneId;
 
-    private IActionResult GetFailResult(IResult result) =>
-        result.HasFailReturn()
-            ? GetBadRequestResult(result)
+    private IActionResult GetFailResult(IOperationResult operationResult) =>
+        operationResult.HasFailReturn()
+            ? GetBadRequestResult(operationResult)
             : NotFound();
 
-    private BadRequestObjectResult GetBadRequestResult(IResult result)
+    private BadRequestObjectResult GetBadRequestResult(IOperationResult operationResult)
     {
-        if (result.Validations is { Count: > 0 })
+        if (operationResult.Validations is { Count: > 0 })
         {
-            var validationErrors = result.Validations
+            var validationErrors = operationResult.Validations
                 .GroupBy(e => e.Field)
                 .ToDictionary(
                     g => g.Key,
@@ -101,7 +99,7 @@ public abstract class MyControllerBase : Controller
         var genericProblem = new ProblemDetails
         {
             Title = "Request failed.",
-            Detail = string.Join(" ", result.Messages),
+            Detail = string.Join(" ", operationResult.Messages),
             Status = StatusCodes.Status400BadRequest,
             Type = ProblemTypeBadRequest,
             Instance = HttpContext.Request.Path

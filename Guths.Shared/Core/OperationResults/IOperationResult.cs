@@ -1,6 +1,6 @@
-namespace Guths.Shared.Core.Results;
+namespace Guths.Shared.Core.OperationResults;
 
-public interface IResult
+public interface IOperationResult
 {
     bool IsSuccess { get; }
     List<string> Messages { get; }
