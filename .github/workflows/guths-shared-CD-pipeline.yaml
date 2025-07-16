@@ -34,14 +34,18 @@ jobs:
           
       - name: Discord Success Notification
         if: success()
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          content: "✅ **NuGet Package publicado com sucesso!**\n📦 Projeto: ${{ env.PROJECT_PATH }}\n🔗 Commit: ${{ github.sha }}\n👤 Por: ${{ github.actor }}"
-
-      - name: Discord Failure Notification
-        if: failure()
-        uses: tsickert/discord-webhook@v5.3.0
-        with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          content: "❌ **Falha na publicação do NuGet Package**\n📦 Projeto: ${{ env.PROJECT_PATH }}\n🔗 Commit: ${{ github.sha }}\n👤 Por: ${{ github.actor }}\n📋 Verifique os logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "✅ NuGet Package Publicado!",
+                   "color": 3066993,
+                   "fields": [
+                     {"name": "📦 Projeto", "value": "${{ env.PROJECT_PATH }}", "inline": true},
+                     {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
+                     {"name": "🔗 Commit", "value": "[`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
+                   ],
+                   "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'"
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
