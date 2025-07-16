@@ -31,6 +31,13 @@ jobs:
 
       - name: Publish to NuGet.org
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Extract Version
+        id: version
+        run: |
+          VERSION=$(grep -oP '<Version>\K[^<]*' ${{ env.PROJECT_PATH }}/*.csproj)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Versão extraída: $VERSION"
           
       - name: Discord Success Notification
         if: success()
@@ -38,10 +45,11 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "✅ NuGet Package Publicado!",
+                   "title": "✅ NuGet Package v${{ steps.version.outputs.version }} Publicado!",
                    "color": 3066993,
                    "fields": [
                      {"name": "📦 Projeto", "value": "${{ env.PROJECT_PATH }}", "inline": true},
+                     {"name": "🏷️ Versão", "value": "v${{ steps.version.outputs.version }}", "inline": true},
                      {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
                      {"name": "🔗 Commit", "value": "[`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
                    ],
@@ -56,10 +64,11 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "❌ Falha na Publicação",
+                   "title": "❌ Falha na Publicação v${{ steps.version.outputs.version }}",
                    "color": 15158332,
                    "fields": [
                      {"name": "📦 Projeto", "value": "${{ env.PROJECT_PATH }}", "inline": true},
+                     {"name": "🏷️ Versão", "value": "v${{ steps.version.outputs.version }}", "inline": true},
                      {"name": "👤 Autor", "value": "${{ github.actor }}", "inline": true},
                      {"name": "🔗 Commit", "value": "[`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false},
                      {"name": "📋 Logs", "value": "[Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
