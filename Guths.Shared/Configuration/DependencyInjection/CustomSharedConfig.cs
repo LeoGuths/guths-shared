@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Carter;
-
 using Guths.Shared.Authentication.OpenApi;
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Web.Handlers;
@@ -49,9 +47,6 @@ public static class CustomSharedConfig
         if (options.UseControllers)
             services.AddControllerConfiguration();
 
-        if (options.UseEndpoints)
-            services.AddCarter();
-
         services.AddDefaultResilienceConfiguration();
     }
 
@@ -76,9 +71,6 @@ public static class CustomSharedConfig
         if (options.UseControllers)
             app.MapControllers();
 
-        if (options.UseEndpoints)
-            app.MapCarter();
-
         if (options.UseLocalization)
             app.AddLocalizationSupport();
     }
@@ -90,7 +82,6 @@ public sealed class SharedConfigurationOptions
     public bool UseAuth { get; init; } = true;
     public bool UseCors { get; init; } = true;
     public bool UseControllers { get; init; } = true;
-    public bool UseEndpoints { get; init; } = false;
     public bool UseLocalization { get; init; } = true;
     public bool UseScalar { get; init; } = true;
 
