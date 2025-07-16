@@ -31,3 +31,17 @@ jobs:
 
       - name: Publish to NuGet.org
         run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          
+      - name: Discord Success Notification
+        if: success()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          content: "✅ **NuGet Package publicado com sucesso!**\n📦 Projeto: ${{ env.PROJECT_PATH }}\n🔗 Commit: ${{ github.sha }}\n👤 Por: ${{ github.actor }}"
+
+      - name: Discord Failure Notification
+        if: failure()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          content: "❌ **Falha na publicação do NuGet Package**\n📦 Projeto: ${{ env.PROJECT_PATH }}\n🔗 Commit: ${{ github.sha }}\n👤 Por: ${{ github.actor }}\n📋 Verifique os logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
