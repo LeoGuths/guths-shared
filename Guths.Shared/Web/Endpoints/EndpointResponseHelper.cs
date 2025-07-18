@@ -31,6 +31,15 @@ public static class EndpointResponseHelper
             : Results.Ok(result.Value);
     }
 
+    public static IResult CustomGet<T>(OperationResult<T> result) where T : class =>
+        !result.IsSuccess ? FailResult(result) : Results.Ok(result.Value);
+
+    public static IResult CustomUpsert(OperationResult result) =>
+        !result.IsSuccess ? FailResult(result) : Results.NoContent();
+
+    public static IResult CustomDelete(OperationResult result) =>
+        !result.IsSuccess ? FailResult(result) : Results.NoContent();
+
     private static IResult FailResult(IOperationResult result)
     {
         if (!(result.Validations.Count > 0))
@@ -49,7 +58,5 @@ public static class EndpointResponseHelper
             );
 
         return Results.ValidationProblem(errors, statusCode: StatusCodes.Status400BadRequest, title: "One or more validation errors occurred.", type: ProblemTypeBadRequest);
-
     }
 }
-
