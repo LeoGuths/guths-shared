@@ -42,7 +42,10 @@ public static class EndpointResponseHelper
 
     private static IResult FailResult(IOperationResult result)
     {
-        if (!(result.Validations.Count > 0))
+        if (result.Validations.Count is 0 && result.Messages.Count is 0)
+            return Results.NotFound();
+
+        if (result.Validations.Count is 0)
             return Results.Problem(
                 title: "Request failed.",
                 detail: string.Join(" ", result.Messages),
