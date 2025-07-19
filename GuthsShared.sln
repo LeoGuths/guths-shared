@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D217A8D-4A0E-42B8-ABA0-7AF8DDC4A559}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C4178C96-A3C8-4F0E-B257-3DA17C081354}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guths.Shared.Test.Unit", "Guths.Shared.Test.Unit\Guths.Shared.Test.Unit.csproj", "{2403FDDE-9A8A-4C44-A791-1DC32C7636B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,8 +27,13 @@ Global
 		{26DA5043-1F0A-4E31-AEFF-48C033E0AA8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26DA5043-1F0A-4E31-AEFF-48C033E0AA8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26DA5043-1F0A-4E31-AEFF-48C033E0AA8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2403FDDE-9A8A-4C44-A791-1DC32C7636B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2403FDDE-9A8A-4C44-A791-1DC32C7636B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2403FDDE-9A8A-4C44-A791-1DC32C7636B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2403FDDE-9A8A-4C44-A791-1DC32C7636B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{26DA5043-1F0A-4E31-AEFF-48C033E0AA8B} = {1D217A8D-4A0E-42B8-ABA0-7AF8DDC4A559}
+		{2403FDDE-9A8A-4C44-A791-1DC32C7636B0} = {C4178C96-A3C8-4F0E-B257-3DA17C081354}
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Guths.Shared.Core.Constants;
 
+[ExcludeFromCodeCoverage]
 public static class Const
 {
     public static class Application

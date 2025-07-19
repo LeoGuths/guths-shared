@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 using Guths.Shared.Core.Constants;
@@ -8,8 +7,7 @@ using Microsoft.AspNetCore.Localization;
 
 namespace Guths.Shared.Web.Middlewares;
 
-[ExcludeFromCodeCoverage]
-public class LocalizationMiddleware
+public sealed class LocalizationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ICollection<CultureInfo> _supportedCultures;

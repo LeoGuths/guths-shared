@@ -5,11 +5,9 @@ using Amazon.S3.Util;
 using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Core.Exceptions;
+using Guths.Shared.DTOs.File;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-
-// ReSharper disable ConvertToUsingDeclaration
 
 namespace Guths.Shared.Storage.Amazon;
 
@@ -28,27 +26,19 @@ public sealed class S3StorageService : IStorageService
         EnsureBucketExistsAsync(_s3StorageOptions.BucketName).GetAwaiter().GetResult();
     }
 
-    public async Task<string> UploadFileAsync(IFormFile file, string? folderName = null)
+    public async Task<string> UploadFileAsync(UploadFileDto fileDto)
     {
-        await using (var fileToUpload = file.OpenReadStream())
-        {
-            return await UploadFileAsync(fileToUpload, file.FileName, file.ContentType, folderName);
-        }
-    }
-
-    private async Task<string> UploadFileAsync(Stream inputStream, string originalFileName, string contentType, string? folderName = null)
-    {
-        var fileName = $"{Ulid.NewUlid().ToString()}{Path.GetExtension(originalFileName)}";
+        var fileName = $"{Ulid.NewUlid().ToString()}{Path.GetExtension(fileDto.FileName)}";
 
         var putRequest = new PutObjectRequest
         {
             BucketName = _s3StorageOptions.BucketName,
-            Key = BuildObjectKey(fileName, folderName),
-            InputStream = inputStream,
-            ContentType = contentType
+            Key = BuildObjectKey(fileName, fileDto.FolderName),
+            InputStream = fileDto.FileStream,
+            ContentType = fileDto.ContentType
         };
 
-        putRequest.Metadata.Add(OriginalFileNameMetadata, originalFileName);
+        putRequest.Metadata.Add(OriginalFileNameMetadata, fileDto.FileName);
 
         await _s3Client.PutObjectAsync(putRequest);
 
@@ -70,31 +60,30 @@ public sealed class S3StorageService : IStorageService
         }
     }
 
-    public async Task<(string originalFileName, IFormFile? formFile)> DownloadFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
+    public async Task<DownloadFileResult> DownloadFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var objectKey = BuildObjectKey(fileName, folderName);
 
-            using (var response =
-                   await _s3Client.GetObjectAsync(_s3StorageOptions.BucketName, objectKey, cancellationToken))
-            using (var memoryStream = new MemoryStream())
+            using var response = await _s3Client.GetObjectAsync(_s3StorageOptions.BucketName, objectKey, cancellationToken);
+            using var memoryStream = new MemoryStream();
+
+            await response.ResponseStream.CopyToAsync(memoryStream, cancellationToken);
+            memoryStream.Position = 0;
+
+            var originalFileName = string.Empty;
+
+            if (response.Metadata.Keys.Contains(OriginalFileNameMetadata))
+                originalFileName = response.Metadata[OriginalFileNameMetadata];
+
+            return new DownloadFileResult
             {
-                await response.ResponseStream.CopyToAsync(memoryStream, cancellationToken);
-                memoryStream.Position = 0;
-
-                var originalFileName = string.Empty;
-                if (response.Metadata.Keys.Contains(OriginalFileNameMetadata))
-                    originalFileName = response.Metadata[OriginalFileNameMetadata];
-
-                var formFile = new FormFile(memoryStream, 0, memoryStream.Length, "download", objectKey)
-                {
-                    Headers = new HeaderDictionary(),
-                    ContentType = response.Headers[Const.File.ContentType]
-                };
-
-                return (originalFileName, formFile);
-            }
+                FileName = objectKey,
+                OriginalFileName = originalFileName,
+                ContentType = response.Headers[Const.File.ContentType],
+                FileBytes = memoryStream.ToArray()
+            };
         }
         catch (Exception)
         {
@@ -124,11 +113,19 @@ public sealed class S3StorageService : IStorageService
         var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
         if (!bucketExists)
         {
-            await _s3Client.PutBucketAsync(new PutBucketRequest
+            try
             {
-                BucketName = bucketName,
-                UseClientRegion = true
-            });
+                await _s3Client.PutBucketAsync(new PutBucketRequest
+                {
+                    BucketName = bucketName,
+                    UseClientRegion = true
+                });
+            }
+            catch
+            {
+                // _logger.LogError(e, msg);
+                throw new ProblemException(error: "BUCKET-CREATION-FAILED", message: $"Não foi possível criar o bucket {bucketName}. Verifique as permissões e tente novamente.");
+            }
         }
     }
 
