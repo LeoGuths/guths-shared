@@ -4,8 +4,6 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 
-// ReSharper disable ConvertToUsingDeclaration
-
 namespace Guths.Shared.Web.Formatters;
 
 public sealed class TextMediaInputFormatter : TextInputFormatter {
@@ -25,13 +23,12 @@ public sealed class TextMediaInputFormatter : TextInputFormatter {
 
         var request = context.HttpContext.Request;
 
-        using (var streamReader = context.ReaderFactory(request.Body, encoding)) {
-            try {
-                var content = await streamReader.ReadToEndAsync();
-                return await InputFormatterResult.SuccessAsync(content);
-            } catch (Exception) {
-                return await InputFormatterResult.FailureAsync();
-            }
+        using var streamReader = context.ReaderFactory(request.Body, encoding);
+        try {
+            var content = await streamReader.ReadToEndAsync();
+            return await InputFormatterResult.SuccessAsync(content);
+        } catch (Exception) {
+            return await InputFormatterResult.FailureAsync();
         }
     }
 
