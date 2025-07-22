@@ -14,9 +14,7 @@ public static class ErrorCodeGeneratorHelper
             var buffer = new byte[length];
             rng.GetBytes(buffer);
             foreach (var b in buffer)
-            {
                 stringBuilder.Append(chars[b % chars.Length]);
-            }
         }
         return stringBuilder.ToString();
     }

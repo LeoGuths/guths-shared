@@ -51,21 +51,6 @@ public abstract class MyControllerBase : Controller
             ? GetFailResult(operationResult)
             : NoContent();
 
-    // protected IActionResult CustomFileResponse(byte[]? result, string fileName, string contentType = MediaTypeNames.Text.Csv, string extension = "csv")
-    // {
-    //     if (!IsValidOperation())
-    //     {
-    //         return BadRequest(new
-    //         {
-    //             success = false,
-    //             errors = Notifier.GetBadRequestNotifications()
-    //         });
-    //     }
-    //     return result is not null
-    //         ? File(new MemoryStream(result), contentType, $"{fileName}{DateTime.UtcNow:yyyy-MM--dd_HHmmss}.{extension}")
-    //         : NotFound();
-    // }
-
     protected string GetTimeZoneId() =>
         Request.Headers[Const.Api.Header.UserTimeZoneHeaderName].FirstOrDefault() ?? Const.TimeAndDate.DefaultTimeZoneId;
 

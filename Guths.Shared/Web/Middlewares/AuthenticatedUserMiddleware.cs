@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Guths.Shared.Authentication.Models;
 using Guths.Shared.Core.Constants;
 
@@ -7,8 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Guths.Shared.Web.Middlewares;
 
-[ExcludeFromCodeCoverage]
-public class AuthenticatedUserMiddleware
+public sealed class AuthenticatedUserMiddleware
 {
     private readonly RequestDelegate _next;
 

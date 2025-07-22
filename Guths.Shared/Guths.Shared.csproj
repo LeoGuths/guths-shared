@@ -33,4 +33,10 @@
         <PackageReference Include="Ulid" Version="1.3.4" />
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Guths.Shared.Test.Unit</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
 </Project>
