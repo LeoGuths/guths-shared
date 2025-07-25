@@ -1,0 +1,43 @@
+name: 'Discord Notification'
+description: 'Send deployment notification to Discord'
+inputs:
+  project_path:
+    description: 'Project path'
+    required: true
+  status:
+    description: 'Job status (success/failure)'
+    required: true
+    default: 'success'
+  webhook_url:
+    description: 'Discord webhook URL'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Send Discord Notification
+      shell: bash
+      run: |
+        if [[ "${{ inputs.status }}" == 'success' ]]; then
+          COLOR=3066993
+          TITLE="✅ Deploy concluído com sucesso!"
+        else
+          COLOR=15158332
+          TITLE="❌ Falha no deploy"
+        fi
+
+        curl -H "Content-Type: application/json" \
+             -d '{
+               "embeds": [{
+                 "title": "'"$TITLE"'",
+                 "color": '"$COLOR"',
+                 "fields": [
+                   {"name": "📦 Projeto", "value": "'"${{ inputs.project_path }}"'", "inline": true},
+                   {"name": "👤 Autor", "value": "'"${{ github.actor }}"'", "inline": true},
+                   {"name": "🔗 Commit", "value": "[`'"${{ github.sha }}"'`]('"${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"')", "inline": false},
+                   {"name": "📋 Logs", "value": "[Ver logs]('"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"')", "inline": false}
+                 ],
+                 "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'"
+               }]
+             }' \
+             "${{ inputs.webhook_url }}"
