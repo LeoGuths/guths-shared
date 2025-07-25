@@ -41,7 +41,8 @@ public static class CustomSharedConfig
         if (options.UseScalar)
             services.AddOpenApi(opts =>
             {
-                opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                if (options.UseAuth)
+                    opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
             });
 
         if (options.UseControllers)
