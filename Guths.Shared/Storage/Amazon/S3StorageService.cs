@@ -1,6 +1,5 @@
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.S3.Util;
 
 using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
@@ -22,27 +21,36 @@ public sealed class S3StorageService : IStorageService
     {
         _s3Client = s3Client;
         _s3StorageOptions = s3StorageOptions.Value;
-
-        EnsureBucketExistsAsync(_s3StorageOptions.BucketName).GetAwaiter().GetResult();
     }
 
     public async Task<string> UploadFileAsync(UploadFileDto fileDto)
     {
-        var fileName = $"{Ulid.NewUlid().ToString()}{Path.GetExtension(fileDto.FileName)}";
-
-        var putRequest = new PutObjectRequest
+        try
         {
-            BucketName = _s3StorageOptions.BucketName,
-            Key = BuildObjectKey(fileName, fileDto.FolderName),
-            InputStream = fileDto.FileStream,
-            ContentType = fileDto.ContentType
-        };
+            var fileName = $"{Ulid.NewUlid().ToString()}{Path.GetExtension(fileDto.FileName)}";
 
-        putRequest.Metadata.Add(OriginalFileNameMetadata, fileDto.FileName);
+            var putRequest = new PutObjectRequest
+            {
+                BucketName = _s3StorageOptions.BucketName,
+                Key = BuildObjectKey(fileName, fileDto.FolderName),
+                InputStream = fileDto.FileStream,
+                ContentType = fileDto.ContentType
+            };
 
-        await _s3Client.PutObjectAsync(putRequest);
+            putRequest.Metadata.Add(OriginalFileNameMetadata, fileDto.FileName);
 
-        return fileName;
+            var response = await _s3Client.PutObjectAsync(putRequest);
+
+            if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
+                throw new ProblemException(error: "FILE-UPLOAD-ERROR", message: $"Upload failed with status: {response.HttpStatusCode}");
+
+            return fileName;
+        }
+        catch (Exception ex)
+        {
+            // _logger.LogError(ex, msg);
+            throw new ProblemException(error: "FILE-UPLOAD-ERROR", message: $"Upload failed with status", innerException: ex);
+        }
     }
 
     public async Task<bool> DoesObjectExistAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
@@ -56,6 +64,11 @@ public sealed class S3StorageService : IStorageService
         }
         catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
+            return false;
+        }
+        catch (Exception ex)
+        {
+            // _logger.LogError(ex, msg);
             return false;
         }
     }
@@ -85,15 +98,30 @@ public sealed class S3StorageService : IStorageService
                 FileBytes = memoryStream.ToArray()
             };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // _logger.LogError(e, msg);
-            throw new ProblemException(error: "STORAGE-FILE-NOT-FOUND", message: $"File not found. Filename {fileName}");
+            // _logger.LogError(ex, msg);
+            throw new ProblemException(error: "STORAGE-FILE-NOT-FOUND",
+                message: $"File not found. Filename {fileName} - Bucket { _s3StorageOptions.BucketName }",
+                innerException: ex);
         }
     }
 
-    public async Task DeleteFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default) =>
-        await _s3Client.DeleteObjectAsync(_s3StorageOptions.BucketName, BuildObjectKey(fileName, folderName), cancellationToken);
+    public async Task DeleteFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _s3Client.DeleteObjectAsync(_s3StorageOptions.BucketName, BuildObjectKey(fileName, folderName),
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // _logger.LogError(ex, msg);
+            throw new ProblemException(error: "STORAGE-FILE-DELETE-ERROR",
+                message: $"Error to delete file. Filename {fileName} - Bucket { _s3StorageOptions.BucketName }",
+                innerException: ex);
+        }
+    }
 
     public string GeneratePreSignedUrl(string fileName, string? folderName = null)
     {
@@ -106,27 +134,6 @@ public sealed class S3StorageService : IStorageService
         };
 
         return _s3Client.GetPreSignedURL(request);
-    }
-
-    private async Task EnsureBucketExistsAsync(string bucketName)
-    {
-        var bucketExists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
-        if (!bucketExists)
-        {
-            try
-            {
-                await _s3Client.PutBucketAsync(new PutBucketRequest
-                {
-                    BucketName = bucketName,
-                    UseClientRegion = true
-                });
-            }
-            catch
-            {
-                // _logger.LogError(e, msg);
-                throw new ProblemException(error: "BUCKET-CREATION-FAILED", message: $"Não foi possível criar o bucket {bucketName}. Verifique as permissões e tente novamente.");
-            }
-        }
     }
 
     private static string BuildObjectKey(string fileName, string? folderName = null) =>

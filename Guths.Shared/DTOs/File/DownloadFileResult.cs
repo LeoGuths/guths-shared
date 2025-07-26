@@ -1,6 +1,6 @@
 namespace Guths.Shared.DTOs.File;
 
-public sealed record DownloadFileResult
+public record DownloadFileResult
 {
     public required string FileName { get; init; }
     public string? OriginalFileName { get; init; }
