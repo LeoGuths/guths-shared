@@ -1,4 +1,5 @@
 using Guths.Shared.Core.OperationResults;
+using Guths.Shared.DTOs.File;
 
 using Microsoft.AspNetCore.Http;
 
@@ -39,6 +40,24 @@ public static class EndpointResponseHelper
 
     public static IResult CustomDelete(OperationResult result) =>
         !result.IsSuccess ? FailResult(result) : Results.NoContent();
+
+    public static IResult CustomFile<T>(OperationResult<T> result) where T : DownloadFileResult
+    {
+        if (result.IsForbidden)
+            return Results.Forbid();
+
+        if (!result.IsSuccess)
+            return FailResult(result);
+
+        if (result.Value is null)
+            return Results.NoContent();
+
+        return Results.File(
+            fileContents: result.Value.FileBytes,
+            contentType: result.Value.ContentType,
+            fileDownloadName: result.Value.OriginalFileName ?? result.Value.FileName
+        );
+    }
 
     private static IResult FailResult(IOperationResult result)
     {
