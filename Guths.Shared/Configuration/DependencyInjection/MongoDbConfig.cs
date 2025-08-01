@@ -5,7 +5,6 @@ using Guths.Shared.Core.Domain.Interfaces;
 using Guths.Shared.Core.Extensions;
 using Guths.Shared.Data.MongoDb;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -18,11 +17,8 @@ namespace Guths.Shared.Configuration.DependencyInjection;
 [ExcludeFromCodeCoverage]
 public static class MongoDbConfig
 {
-    public static IMongoDatabase? AddMongoDbConfiguration(this IHostApplicationBuilder builder)
+    public static IMongoDatabase AddMongoDbConfiguration(this IHostApplicationBuilder builder)
     {
-        if (!builder.Configuration.GetValue("SharedConfiguration:UseMongoDb", false))
-            return null;
-
         RegisterConventions();
 
         var connectionString = builder.Configuration.GetRequired(Config.AppConfigKey.MongoConnectionString);
