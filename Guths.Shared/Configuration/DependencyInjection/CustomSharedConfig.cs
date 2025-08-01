@@ -14,7 +14,6 @@ public static class CustomSharedConfig
         SharedConfigurationOptions? options = null)
     {
         builder.ConfigureApplication();
-        builder.AddMongoDbConfiguration();
         builder.Services.AddHttpContextAccessor();
         builder.AddAuthConfiguration(options?.ConfigureAuthorization);
         builder.AddCacheConfiguration();
