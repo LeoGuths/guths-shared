@@ -6,7 +6,9 @@ using Guths.Shared.Web.Middlewares;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Guths.Shared.Configuration.DependencyInjection;
@@ -21,11 +23,14 @@ public static class LocalizationConfig
         new(Const.Lang.EsEs)
     ];
 
-    public static void AddLocalizationConfiguration(this IServiceCollection services)
+    public static void AddLocalizationConfiguration(this IHostApplicationBuilder builder)
     {
-        services.AddLocalization(options => options.ResourcesPath = string.Empty);
+        if (!builder.Configuration.GetValue("SharedConfiguration:UseLocalization", false))
+            return;
 
-        services.Configure<RequestLocalizationOptions>(options =>
+        builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
+
+        builder.Services.Configure<RequestLocalizationOptions>(options =>
         {
             options.DefaultRequestCulture = new RequestCulture(Const.Lang.EnUs);
             options.SupportedCultures = _supportedCultures;
@@ -49,10 +54,13 @@ public static class LocalizationConfig
         });
     }
 
-    public static void AddLocalizationSupport(this WebApplication app)
+    public static void AddLocalizationConfiguration(this WebApplication app)
     {
+        if (!app.Configuration.GetValue("SharedConfiguration:UseLocalization", false))
+            return;
+
         var localizationOptions = app.Services.GetService<IOptions<RequestLocalizationOptions>>()?.Value;
-        if (localizationOptions != null)
+        if (localizationOptions is not null)
             app.UseRequestLocalization(localizationOptions);
 
         app.UseMiddleware<LocalizationMiddleware>(_supportedCultures.ToList());

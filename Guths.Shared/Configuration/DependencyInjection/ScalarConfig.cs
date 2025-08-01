@@ -1,6 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Guths.Shared.Authentication.OpenApi;
+
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using Scalar.AspNetCore;
 
@@ -9,7 +14,18 @@ namespace Guths.Shared.Configuration.DependencyInjection;
 [ExcludeFromCodeCoverage]
 public static class ScalarConfig
 {
-    // https://github.com/scalar/scalar/blob/main/documentation/integrations/dotnet.md
+    public static void AddScalarConfiguration(this IHostApplicationBuilder builder)
+    {
+        if (!builder.Configuration.GetValue("SharedConfiguration:UseScalar", false))
+            return;
+
+        builder.Services.AddOpenApi(opts =>
+        {
+            if (builder.Configuration.GetValue("SharedConfiguration:UseAuth", false))
+                opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
+    }
+
     public static void AddScalarConfiguration(this WebApplication app, string projectName)
     {
         app.MapOpenApi();
