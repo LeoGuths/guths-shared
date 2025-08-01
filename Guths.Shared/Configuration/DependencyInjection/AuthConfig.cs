@@ -5,6 +5,7 @@ using Guths.Shared.Authentication;
 using Guths.Shared.Authentication.Models;
 using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
+using Guths.Shared.Core.Extensions;
 using Guths.Shared.Web.Middlewares;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Guths.Shared.Configuration.DependencyInjection;
@@ -21,10 +23,13 @@ namespace Guths.Shared.Configuration.DependencyInjection;
 [ExcludeFromCodeCoverage]
 public static class AuthConfig
 {
-    public static void AddAuthConfiguration(this IServiceCollection services,
-        ConfigurationManager configuration, Action<AuthorizationOptions>? configureAuthorization = null)
+    public static void AddAuthConfiguration(this IHostApplicationBuilder builder,
+        Action<AuthorizationOptions>? configureAuthorization = null)
     {
-        services.AddAuthentication(options =>
+        if (!builder.Configuration.GetValue("SharedConfiguration:UseAuth", false))
+            return;
+
+        builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,17 +40,19 @@ public static class AuthConfig
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidIssuer = configuration["AuthSettings:Issuer"],
-                    ValidAudience = configuration["AuthSettings:Audience"],
+                    ValidIssuer = builder.Configuration.GetRequired("AuthSettings:Issuer"),
+                    ValidAudience = builder.Configuration.GetRequired("AuthSettings:Audience"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetRequired("AuthSettings:SecretKey"))),
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["AuthSettings:SecretKey"]!)),
                     ValidateLifetime = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
                     ClockSkew = TimeSpan.FromMinutes(1)
                 };
             })
             .AddCookie(options =>
             {
-                options.Cookie.Name = configuration["AuthSettings:CookieName"];
+                options.Cookie.Name = builder.Configuration.GetRequired("AuthSettings:CookieName");
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
@@ -61,18 +68,21 @@ public static class AuthConfig
             });
 
         if (configureAuthorization is not null)
-            services.AddAuthorization(configureAuthorization);
+            builder.Services.AddAuthorization(configureAuthorization);
         else
-            services.AddAuthorization();
+            builder.Services.AddAuthorization();
 
-        services.AddScoped<AuthTokenAccessor>();
-        services.AddAuthenticatedUser();
+        builder.Services.AddScoped<AuthTokenAccessor>();
+        builder.Services.AddAuthenticatedUser();
 
-        services.Configure<AuthSettings>(configuration.GetSection("AuthSettings"));
+        builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
     }
 
     public static void AddAuthConfiguration(this WebApplication app)
     {
+        if (!app.Configuration.GetValue("SharedConfiguration:UseAuth", false))
+            return;
+
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseMiddleware<AuthenticatedUserMiddleware>();

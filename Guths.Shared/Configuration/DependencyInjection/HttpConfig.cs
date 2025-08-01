@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 using Polly;
 using Polly.Retry;
@@ -10,9 +11,12 @@ namespace Guths.Shared.Configuration.DependencyInjection;
 [ExcludeFromCodeCoverage]
 public static class HttpConfig
 {
-    public static void AddDefaultResilienceConfiguration(this IServiceCollection services)
+    public static void AddDefaultResilienceConfiguration(this IHostApplicationBuilder builder)
     {
-        services.AddResiliencePipeline("default", x =>
+        if (!builder.Configuration.GetValue("SharedConfiguration:UseDefaultHttpResilience", false))
+            return;
+
+        builder.Services.AddResiliencePipeline("default", x =>
         {
             x.AddRetry(new RetryStrategyOptions
                 {

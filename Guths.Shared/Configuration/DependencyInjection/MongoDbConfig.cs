@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Core.Domain.Interfaces;
+using Guths.Shared.Core.Extensions;
 using Guths.Shared.Data.MongoDb;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
@@ -16,32 +18,25 @@ namespace Guths.Shared.Configuration.DependencyInjection;
 [ExcludeFromCodeCoverage]
 public static class MongoDbConfig
 {
-    public static IMongoDatabase AddMongoDb(this IServiceCollection services)
+    public static IMongoDatabase? AddMongoDbConfiguration(this IHostApplicationBuilder builder)
     {
+        if (!builder.Configuration.GetValue("SharedConfiguration:UseMongoDb", false))
+            return null;
+
         RegisterConventions();
 
-        var serviceProvider = services.BuildServiceProvider();
-        var configuration = serviceProvider.GetService<IConfiguration>();
-
-        var connectionString = configuration?[Config.AppConfigKey.MongoConnectionString];
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new Exception("O parâmetro MongoDBConnectionString não está configurado");
+        var connectionString = builder.Configuration.GetRequired(Config.AppConfigKey.MongoConnectionString);
 
         var mongoClient = new MongoClient(connectionString);
 
-        services.AddSingleton<IMongoClient>(mongoClient);
-        services.AddSingleton<IMongoClientManager>(new MongoClientManager(connectionString));
+        builder.Services.AddSingleton<IMongoClient>(mongoClient);
+        builder.Services.AddSingleton<IMongoClientManager>(new MongoClientManager(connectionString));
 
-        var name = configuration?[Config.AppConfigKey.MongoDb];
-        if (string.IsNullOrWhiteSpace(name))
-            throw new Exception("O parâmetro MongoDatabase não está configurado");
+        var database = mongoClient.GetDatabase(builder.Configuration.GetRequired(Config.AppConfigKey.MongoDb));
 
-        var database = mongoClient.GetDatabase(name);
-
-        services.AddScoped<IMongoDatabase>(_ => database);
-        // services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped(typeof(IRepository<>), typeof(MongoDbRepository<>));
+        builder.Services.AddScoped<IMongoDatabase>(_ => database);
+        // builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped(typeof(IRepository<>), typeof(MongoDbRepository<>));
 
         return database;
     }
@@ -55,6 +50,6 @@ public static class MongoDbConfig
             new CamelCaseElementNameConvention(),
             new EnumRepresentationConvention(BsonType.String)
         };
-        ConventionRegistry.Register("My App Conventions", pack, _ => true);
+        ConventionRegistry.Register("Default Conventions", pack, _ => true);
     }
 }
