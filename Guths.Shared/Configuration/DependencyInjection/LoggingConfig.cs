@@ -127,6 +127,9 @@ public static class LoggingConfig
                     options.Headers = $"Authorization=Basic {builder.Configuration.GetRequired($"OpenTelemetry:{provider}:ApiKey")}";
                     options.TimeoutMilliseconds = 5000;
                 });
+
+                if (!builder.Environment.IsProduction())
+                    tracing.SetSampler<AlwaysOnSampler>();
             });
     }
 
