@@ -30,7 +30,15 @@ public sealed class S3StorageService : IStorageService
 
     public async Task<string> UploadFileAsync(UploadFileDto fileDto)
     {
-        _logger.LogInformation("Starting file upload: {FileName}", fileDto.FileName);
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["OriginalFileName"] = fileDto.FileName,
+            ["FolderName"] = fileDto.FolderName ?? "root",
+            ["ContentType"] = fileDto.ContentType,
+            ["OperationId"] = Guid.NewGuid().ToString()
+        });
+
+        _logger.LogInformation("Starting file upload");
 
         try
         {
@@ -49,55 +57,66 @@ public sealed class S3StorageService : IStorageService
             var response = await _s3Client.PutObjectAsync(putRequest);
 
             if (response.HttpStatusCode == System.Net.HttpStatusCode.OK)
+            {
+                _logger.LogInformation("File upload completed successfully");
                 return fileName;
+            }
 
-            _logger.LogError("File upload failed. Status: {StatusCode}", response.HttpStatusCode);
-
-            throw new ProblemException(error: "FILE-UPLOAD-ERROR", message: $"Upload failed with status: {response.HttpStatusCode}");
+            _logger.LogError("File upload failed with status: {StatusCode}", response.HttpStatusCode);
+            throw new ProblemException(error: "FILE_UPLOAD_ERROR", message: "Upload failed");
         }
         catch (AmazonS3Exception s3Ex)
         {
             _logger.LogError(s3Ex, "S3 specific error during upload. Code: {ErrorCode}", s3Ex.ErrorCode);
-            throw new ProblemException(
-                error: "FILE-UPLOAD-ERROR",
-                message: "Upload failed with S3 error",
-                innerException: s3Ex);
+            throw new ProblemException(error: "FILE-UPLOAD-ERROR", message: "Upload failed with S3 error");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during file upload");
-            throw new ProblemException(
-                error: "FILE-UPLOAD-ERROR",
-                message: "Upload failed with unexpected error",
-                innerException: ex);
+            throw new ProblemException(error: "FILE-UPLOAD-ERROR", message: "Upload failed with unexpected error");
         }
     }
 
     public async Task<bool> DoesObjectExistAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
     {
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["FileName"] = fileName,
+            ["FolderName"] = folderName ?? "root",
+            ["Operation"] = "CheckExistence"
+        });
+
         var objectKey = BuildObjectKey(fileName, folderName);
 
         try
         {
             await _s3Client.GetObjectMetadataAsync(_s3StorageOptions.BucketName, objectKey, cancellationToken);
+            _logger.LogInformation("Object exists");
             return true;
         }
         catch (AmazonS3Exception e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogWarning("Object not found: {ObjectKey}", objectKey);
+            _logger.LogInformation("Object not found");
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking object existence: {ObjectKey}", objectKey);
+            _logger.LogError(ex, "Error checking object existence");
             return false;
         }
     }
 
     public async Task<DownloadFileResult?> DownloadFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
     {
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["FileName"] = fileName,
+            ["FolderName"] = folderName ?? "root",
+            ["Operation"] = "Download"
+        });
+
         var objectKey = BuildObjectKey(fileName, folderName);
-        _logger.LogInformation("Starting file download: {ObjectKey}", objectKey);
+        _logger.LogInformation("Starting file download");
 
         try
         {
@@ -112,8 +131,7 @@ public sealed class S3StorageService : IStorageService
             if (response.Metadata.Keys.Contains(OriginalFileNameMetadata))
                 originalFileName = response.Metadata[OriginalFileNameMetadata];
 
-            _logger.LogInformation("Download completed: {ObjectKey} (Size: {Length} bytes)",
-                objectKey, memoryStream.Length);
+            _logger.LogInformation("Download completed (Size: {FileSize} bytes)", memoryStream.Length);
 
             return new DownloadFileResult
             {
@@ -125,40 +143,53 @@ public sealed class S3StorageService : IStorageService
         }
         catch (AmazonS3Exception s3Ex) when (s3Ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _logger.LogWarning("File not found in S3: {ObjectKey}", objectKey);
+            _logger.LogWarning("File not found in S3");
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error downloading file: {ObjectKey}", objectKey);
-            throw new ProblemException(
-                error: "STORAGE-FILE-NOT-FOUND",
-                message: $"File not found. Filename {fileName} - Bucket {_s3StorageOptions.BucketName}",
-                innerException: ex);
+            _logger.LogError(ex, "Error downloading file");
+            throw new ProblemException(error: "STORAGE-FILE-NOT-FOUND",
+                message: $"File not found. Filename {fileName} - Bucket {_s3StorageOptions.BucketName}");
         }
     }
 
     public async Task DeleteFileAsync(string fileName, string? folderName = null, CancellationToken cancellationToken = default)
     {
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["FileName"] = fileName,
+            ["FolderName"] = folderName ?? "root",
+            ["Operation"] = "Delete"
+        });
+
         var objectKey = BuildObjectKey(fileName, folderName);
-        _logger.LogInformation("Starting file deletion: {ObjectKey}", objectKey);
+        _logger.LogInformation("Starting file deletion");
 
         try
         {
             await _s3Client.DeleteObjectAsync(_s3StorageOptions.BucketName, objectKey, cancellationToken);
-            _logger.LogInformation("File deleted successfully: {ObjectKey}", objectKey);
+            _logger.LogInformation("File deleted successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error deleting file: {ObjectKey}", objectKey);
+            _logger.LogError(ex, "Unexpected error deleting file");
             throw new ProblemException(error: "STORAGE-FILE-DELETE-ERROR",
-                message: $"Error to delete file. Filename {fileName} - Bucket { _s3StorageOptions.BucketName }",
-                innerException: ex);
+                message: $"Error to delete file. Filename {fileName} - Bucket { _s3StorageOptions.BucketName }");
         }
     }
 
     public string GeneratePreSignedUrl(string fileName, string? folderName = null)
     {
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["FileName"] = fileName,
+            ["FolderName"] = folderName ?? "root",
+            ["Operation"] = "GeneratePreSignedUrl"
+        });
+
+        _logger.LogInformation("Generating pre-signed URL");
+
         var request = new GetPreSignedUrlRequest
         {
             BucketName = _s3StorageOptions.BucketName,
@@ -167,7 +198,11 @@ public sealed class S3StorageService : IStorageService
             Expires = DateTime.UtcNow.AddHours(Const.TimeAndDate.S3PreSignedUrlDuration)
         };
 
-        return _s3Client.GetPreSignedURL(request);
+        var url = _s3Client.GetPreSignedURL(request);
+
+        _logger.LogInformation("Pre-signed URL generated successfully");
+
+        return url;
     }
 
     private static string BuildObjectKey(string fileName, string? folderName = null) =>
