@@ -205,7 +205,7 @@ Quando `UseAwsParameterStore` está habilitado, as configurações podem ser arm
 
 ### SharedConfiguration
 
-OBS: O valor padrão de todos os parâmetros abaixo é `true`.
+OBS: O valor padrão de todos os parâmetros abaixo é `false`.
 ```text
 UseAwsParameterStore        -> Carrega configurações do AWS Parameter Store
 UseDefaultHttpResilience    -> Habilita políticas padrão de resiliência HTTP
@@ -221,7 +221,7 @@ LoggingConfiguration        -> Configurações de logging e observabilidade (Se 
 
 ### LoggingConfiguration
 
-OBS: O valor padrão de todos os parâmetros abaixo é `true`.
+OBS: O valor padrão de todos os parâmetros abaixo é `false`.
 ```text
 UseCustomLogger -> Logger customizado
 UseTracing      -> Distributed tracing
