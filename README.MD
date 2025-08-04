@@ -9,8 +9,11 @@ Uma biblioteca compartilhada para aplicações .NET que fornece funcionalidades 
 - **Paginação** - DTOs e helpers para paginação de dados
 - **MongoDB Integration** - Generic Repository pattern e configurações
 - **Storage Services** - Integração com Amazon S3
-- **Web Utilities** - Controllers base, formatters e middlewares
+- **Web Utilities** - Controllers base, Endpoints helper, formatters e middlewares
 - **Localização** - Suporte multi-idioma
+- **Logging** e Observabilidade - Logger customizado, tracing e métricas
+- **Resiliência HTTP** - Políticas de retry e circuit breaker
+- **AWS Parameter Store** - Integração para configurações seguras
 
 ## 🔧 Instalação
 
@@ -27,47 +30,202 @@ using Guths.Shared.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar configurações compartilhadas
-builder.Services.AddSharedConfiguration(builder.Configuration, new SharedConfigurationOptions
-{
-    UseAuth = true,
-    UseCache = true,
-    UseCors = true
-});
+// Configuração básica (carrega automaticamente do appsettings.json)
+builder.Services.AddSharedConfiguration();
 
 var app = builder.Build();
 
 // Configurar pipeline da aplicação
-// OBS: "MeuProjeto" -> Nome do seu projeto: Vai buscar configurações no Parameter Store com base nesse nome
-app.AddSharedConfiguration("MeuProjeto", new SharedConfigurationOptions
-{
-    UseAuth = true,
-    UseCors = true
-});
+app.AddSharedConfiguration("ScalarTitle");
 
 app.Run();
 ```
 
-### 2. appsettings.json ou AWS Parameter Store
+### 2. Configuração com Políticas de Autorização Customizadas
+
+```csharp
+using Guths.Shared.Configuration;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Configuração com políticas customizadas
+var sharedConfigurationOptions = new SharedConfigurationOptions
+{
+    ConfigureAuthorization = options =>
+    {
+        options.AddPolicy("SystemScope", policy =>
+        {
+            policy.RequireClaim("role", "system");
+            policy.RequireClaim("scope", "send_email");
+        });
+        
+        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    }
+};
+
+builder.Services.AddSharedConfiguration(sharedConfigurationOptions);
+
+var app = builder.Build();
+
+app.AddSharedConfiguration("ScalarTitle");
+
+app.Run();
+```
+
+### 3. appsettings.json ou AWS Parameter Store
+
+#### Configuração Mínima Obrigatória
 
 ```json
 {
+  "SharedConfiguration": {
+    "UseAwsParameterStore": false
+  },
+  "AmazonParameterStorePaths": [
+    "/NomeDoProjeto",
+    "/Commons",
+    "/etc"
+  ]
+}
+```
+
+> ⚠️ **Importante**: As seções `SharedConfiguration` e `AmazonParameterStorePaths` são **obrigatórias** no `appsettings.json`. A primeira controla se o AWS Parameter Store será usado, e a segunda define os caminhos a serem buscados (necessária apenas se for usar AWS para evitar exceptions).
+
+#### Configuração Completa
+
+```json
+{
+  "SharedConfiguration": {
+    "UseAwsParameterStore": true,
+    "UseDefaultHttpResilience": true,
+    "UseGlobalExceptionHandler": true,
+    "UseCache": true,
+    "UseAuth": true,
+    "UseCors": true,
+    "UseControllers": true,
+    "UseLocalization": true,
+    "UseScalar": true,
+    "LoggingConfiguration": {
+      "UseCustomLogger": true,
+      "UseTracing": true,
+      "UseMetrics": true
+    }
+  },
+  "AmazonParameterStorePaths": [
+    "/NomeDoProjeto",
+    "/Commons",
+    "/etc"
+  ],
   "AuthSettings": {
     "Issuer": "https://meudominio.com",
     "Audience": "minha-api",
-    "SigningKey": "sua-chave-secreta-aqui"
+    "SecretKey": "sua-chave-secreta-aqui",
+    "AccessTokenExpirationInMinutes": 30,
+    "RefreshTokenExpirationInDays": 7,
+    "CookieName": "AuthToken"
   },
-  "MongoDbSettings": {
-    "ConnectionString": "mongodb://localhost:27017",
-    "DatabaseName": "MeuDatabase"
+  "DatabaseConnection": {
+    "MongoDbConnectionString": "mongodb://localhost:27017",
+    "MongoDbDatabaseName": "MeuDatabase"
   },
-  "S3StorageSettings": {
-    "AccessKey": "sua-access-key",
-    "SecretKey": "sua-secret-key",
-    "BucketName": "meu-bucket",
-    "Region": "us-east-1"
+  "RedisConnection": {
+    "Host": "localhost:6379",
+    "User": "default",
+    "Password": "sua-senha-redis"
+  },
+  "StorageOptions": {
+    "BucketName": "meu-bucket"
+  },
+  "OpenTelemetry": {
+    "Provider": "Grafana",
+    "Grafana": {
+      "ServiceName": "minha-api",
+      "ServiceNamespace": "meu-namespace",
+      "ApiKey": "sua-api-key-grafana",
+      "TracesEndpoint": "https://traces-prod-us-central1.grafana.net/tempo",
+      "MetricsEndpoint": "https://prometheus-us-central1.grafana.net/api/prom",
+      "LogsEndpoint": "https://logs-prod-us-central1.grafana.net/loki"
+    }
   }
 }
+```
+> 🔒 **Recomendação de Segurança**: Dados sensíveis como senhas, chaves de API e tokens **não devem** ser armazenados no `appsettings.json` em produção ou em projetos abertos. Use AWS Parameter Store/Secrets Manager, Key Vault ou outras soluções seguras de gerenciamento de segredos.
+
+### 4. Configurações via AWS Parameter Store
+
+Quando `UseAwsParameterStore` está habilitado, as configurações podem ser armazenadas no AWS Systems Manager Parameter Store seguindo os padrões:
+
+#### Autenticação
+```
+/{NomeDoProjeto}/AuthSettings/SecretKey
+/{NomeDoProjeto}/AuthSettings/RefreshTokenExpirationInDays
+/{NomeDoProjeto}/AuthSettings/Issuer
+/{NomeDoProjeto}/AuthSettings/AccessTokenExpirationInMinutes
+/{NomeDoProjeto}/AuthSettings/CookieName
+/{NomeDoProjeto}/AuthSettings/Audience
+```
+
+#### Banco de Dados
+```
+/{NomeDoProjeto}/DatabaseConnection/MongoDbConnectionString
+/{NomeDoProjeto}/DatabaseConnection/MongoDbDatabaseName
+```
+
+#### Cache Redis
+```
+/{NomeDoProjeto}/RedisConnection/Password
+/{NomeDoProjeto}/RedisConnection/User
+/{NomeDoProjeto}/RedisConnection/Host
+```
+
+#### Storage
+```
+/{NomeDoProjeto}/StorageOptions/BucketName
+```
+
+#### OpenTelemetry
+```
+/{NomeDoProjeto}/OpenTelemetry/Provider
+/{NomeDoProjeto}/OpenTelemetry/Grafana/ApiKey
+/{NomeDoProjeto}/OpenTelemetry/Grafana/TracesEndpoint
+/{NomeDoProjeto}/OpenTelemetry/Grafana/ServiceNamespace
+/{NomeDoProjeto}/OpenTelemetry/Grafana/MetricsEndpoint
+/{NomeDoProjeto}/OpenTelemetry/Grafana/LogsEndpoint
+/{NomeDoProjeto}/OpenTelemetry/Grafana/ServiceName
+```
+
+#### Configurações Compartilhadas
+```
+/Commons/DatabaseConnection/MongoDbConnectionString
+/Commons/RedisConnection/Host
+/etc/GlobalSettings/Environment
+```
+
+## ⚙️ Opções de Configuração
+
+### SharedConfiguration
+
+OBS: O valor padrão de todos os parâmetros abaixo é `true`.
+```text
+UseAwsParameterStore        -> Carrega configurações do AWS Parameter Store
+UseDefaultHttpResilience    -> Habilita políticas padrão de resiliência HTTP
+UseGlobalExceptionHandler   -> Middleware global de tratamento de exceções
+UseCache                    -> Serviços de cache distribuído
+UseAuth                     -> Autenticação JWT
+UseCors                     -> Configuração de CORS
+UseControllers              -> Registra controllers automaticamente
+UseLocalization             -> Suporte a localização com StringLocalizer
+UseScalar                   -> Documentação de API com Scalar e OpenAPI
+LoggingConfiguration        -> Configurações de logging e observabilidade (Se encontrado a sessão LoggingConfiguration, pelo menos o logging será habilitado automaticamente)
+```
+
+### LoggingConfiguration
+
+OBS: O valor padrão de todos os parâmetros abaixo é `true`.
+```text
+UseCustomLogger -> Logger customizado
+UseTracing      -> Distributed tracing
+UseMetrics      -> Métricas da aplicação
 ```
 
 ## 🛠️ Exemplos de Uso
@@ -152,31 +310,20 @@ public class DocumentService
 }
 ```
 
-### Versionamento de API
-
-```csharp
-[ApiController]
-[RouteWithVersion("users")]
-public class UserV1Controller : MyControllerBase
-{
-    // Implementação V1
-}
-
-[ApiController]
-[RouteWithVersion("users", EApiVersions.V2)]
-public class UserV2Controller : MyControllerBase
-{
-    // Implementação V2 com breaking changes
-}
-```
-
 ## 🌐 Localização
 
 ### Configuração
 
+```json
+{
+  "SharedConfiguration": {
+    "UseLocalization": true
+  }
+}
+```
+
 ```csharp
-// Automático com AddSharedConfiguration
-builder.Services.AddSharedConfiguration(builder.Configuration);
+builder.Services.AddSharedConfiguration();
 ```
 
 ### Uso
@@ -207,15 +354,30 @@ public class UserService
 
 ### Configuração Automática
 
-```csharp
-builder.Services.AddSharedConfiguration(builder.Configuration, new SharedConfigurationOptions
+```json
 {
-    UseAuth = true,
-    ConfigureAuthorization = auth =>
+  "SharedConfiguration": {
+    "UseAuth": true
+  }
+}
+```
+
+```csharp
+var sharedConfigurationOptions = new SharedConfigurationOptions
+{
+    ConfigureAuthorization = options =>
     {
-        auth.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+        options.AddPolicy("SystemScope", policy =>
+        {
+            policy.RequireClaim("role", "system");
+            policy.RequireClaim("scope", "send_email");
+        });
+        
+        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     }
-});
+};
+
+builder.Services.AddSharedConfiguration(sharedConfigurationOptions);
 ```
 
 ### Acesso ao Token
@@ -238,28 +400,68 @@ public class MyService
 }
 ```
 
-## 📚 Recursos Adicionais
+## 📊 Observabilidade
+
+### Configuração
+
+```json
+{
+  "SharedConfiguration": {
+    "LoggingConfiguration": {
+      "UseCustomLogger": true,
+      "UseTracing": true,
+      "UseMetrics": true
+    }
+  }
+}
+```
+
+### Recursos Inclusos (OpenTelemetry)
+
+A biblioteca utiliza **OpenTelemetry** como padrão para observabilidade, proporcionando flexibilidade total para escolher seus exporters e backends:
+
+- **Logging Estruturado** - Logs padronizados e estruturados
+- **Distributed Tracing** - Rastreamento de requisições entre serviços
+- **Métricas** - Coleta automática de métricas da aplicação
+- **Health Checks** - Endpoints de saúde da aplicação
+
+## 🔄 Resiliência HTTP
+
+### Configuração
+
+```json
+{
+  "SharedConfiguration": {
+    "UseDefaultHttpResilience": true
+  }
+}
+```
+
+### Recursos
+
+- **Retry Policies** - Tentativas automáticas em falhas temporárias
+- **Circuit Breaker** - Proteção contra cascata de falhas
+- **Timeout** - Controle de tempo limite de requisições
+- **Bulkhead** - Isolamento de recursos
+
+## 📚 Recursos Automáticos
 
 ### Middleware de Usuário Autenticado
-
-```csharp
-// Automático com UseAuth = true
-// Popula informações do usuário no contexto
-```
+- Ativo quando `UseAuth = true`
+- Popula informações do usuário no contexto automaticamente
 
 ### Exception Handler Global
-
-```csharp
-// Automático com AddSharedConfiguration
-// Trata todas as exceções de forma padronizada
-```
+- Ativo quando `UseGlobalExceptionHandler = true`
+- Trata todas as exceções de forma padronizada
+- Habilita suporte para ProblemException
 
 ### Formatters Customizados
+- Suporte automático para `text/plain`
+- Útil para webhooks e integrações
 
-```csharp
-// Suporte automático para text/plain
-// Útil para webhooks e integrações
-```
+### Documentação com Scalar
+- Ativo quando `UseScalar = true`
+- Interface moderna para documentação de APIs
 
 ## 🤝 Contribuindo
 
@@ -271,10 +473,11 @@ public class MyService
 
 ## 🏗️ Roadmap
 
-- [ ] Testes automatizados
-- [ ] Integração com AWS Systems Manager para armazenar segredos
-- [ ] Métricas e observabilidade
-- [ ] Logger
+- [x] Testes automatizados
+- [x] Integração com AWS Systems Manager para armazenar segredos
+- [x] Métricas e observabilidade
+- [x] Logger customizado
+- [ ] Integração com Azure Key Vault
 
 ## 📧 Contato
 
