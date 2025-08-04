@@ -8,22 +8,22 @@ using Guths.Shared.Configuration.Options;
 using Guths.Shared.Storage;
 using Guths.Shared.Storage.Amazon;
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Guths.Shared.Configuration.DependencyInjection;
 
 [ExcludeFromCodeCoverage]
 public static class StorageConfig
 {
-    public static void AddAmazonS3Dependencies(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddAmazonS3Dependencies(this IHostApplicationBuilder builder)
     {
-        services.Configure<S3StorageOptions>(configuration.GetSection("StorageOptions"));
+        builder.Services.Configure<S3StorageOptions>(builder.Configuration.GetSection("StorageOptions"));
 
         var awsOptions = new AWSOptions { Region = RegionEndpoint.USEast1 };
 
-        services.AddDefaultAWSOptions(awsOptions);
-        services.AddAWSService<IAmazonS3>();
-        services.AddScoped<IStorageService, S3StorageService>();
+        builder.Services.AddDefaultAWSOptions(awsOptions);
+        builder.Services.AddAWSService<IAmazonS3>();
+        builder.Services.AddScoped<IStorageService, S3StorageService>();
     }
 }
