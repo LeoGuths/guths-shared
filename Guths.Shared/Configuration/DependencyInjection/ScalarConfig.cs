@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
 using Guths.Shared.Authentication.OpenApi;
+using Guths.Shared.Core.Extensions;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -26,14 +27,14 @@ public static class ScalarConfig
         });
     }
 
-    public static void AddScalarConfiguration(this WebApplication app, string projectName)
+    public static void AddScalarConfiguration(this WebApplication app, string? scalarTitle)
     {
         app.MapOpenApi();
 
         app.MapScalarApiReference(options =>
         {
             options
-                .WithTitle(projectName)
+                .WithTitle(scalarTitle ?? AssemblyExtensions.GetProjectName())
                 .WithSidebar()
                 .WithTheme(ScalarTheme.Moon)
                 .WithDarkMode()

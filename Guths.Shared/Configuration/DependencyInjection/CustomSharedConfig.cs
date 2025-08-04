@@ -28,12 +28,12 @@ public static class CustomSharedConfig
         builder.AddLoggingConfiguration();
     }
 
-    public static void AddSharedConfiguration(this WebApplication app, string projectName)
+    public static void AddSharedConfiguration(this WebApplication app, string? scalarTitle)
     {
         app.UseRouting();
         app.AddAuthConfiguration();
         app.AddCorsConfiguration();
-        app.AddScalarConfiguration(projectName);
+        app.AddScalarConfiguration(scalarTitle);
         app.AddGlobalExceptionConfiguration();
         app.AddControllerConfiguration();
         app.AddLocalizationConfiguration();
