@@ -27,14 +27,14 @@ public static class ScalarConfig
         });
     }
 
-    public static void AddScalarConfiguration(this WebApplication app, string? scalarTitle)
+    public static void AddScalarConfiguration(this WebApplication app)
     {
         app.MapOpenApi();
 
         app.MapScalarApiReference(options =>
         {
             options
-                .WithTitle(scalarTitle ?? AssemblyExtensions.GetProjectName())
+                .WithTitle(AssemblyExtensions.GetProjectName())
                 .WithSidebar()
                 .WithTheme(ScalarTheme.Moon)
                 .WithDarkMode()
