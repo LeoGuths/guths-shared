@@ -6,13 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 using Guths.Shared.Core.OperationResults;
 using Guths.Shared.Web.Controllers;
 
+using ControllerBase = Guths.Shared.Web.Controllers.ControllerBase;
+
 namespace Guths.Shared.Test.Unit.Web.Controllers;
 
-public class MyControllerBaseTests
+public class ControllerBaseTests
 {
     private readonly TestController _controller;
 
-    public MyControllerBaseTests()
+    public ControllerBaseTests()
     {
         _controller = new TestController();
 
@@ -209,7 +211,7 @@ public class MyControllerBaseTests
         Assert.Equal(Const.TimeAndDate.DefaultTimeZoneId, actual);
     }
 
-    private class TestController : MyControllerBase
+    private class TestController : ControllerBase
     {
         public new IActionResult CustomPostResponse<T>(OperationResult<T> operationResult) where T : class
             => base.CustomPostResponse(operationResult);
