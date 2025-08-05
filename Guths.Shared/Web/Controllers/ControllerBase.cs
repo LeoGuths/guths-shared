@@ -8,7 +8,7 @@ namespace Guths.Shared.Web.Controllers;
 
 [ApiController]
 [ApiExplorerSettings(IgnoreApi = false)]
-public abstract class MyControllerBase : Controller
+public abstract class ControllerBase : Controller
 {
     private const string ProblemTypeBadRequest = "https://tools.ietf.org/html/rfc7231#section-6.5.1";
 

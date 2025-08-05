@@ -1,5 +1,14 @@
 # Guths.Shared
 
+[![NuGet Version](https://img.shields.io/nuget/v/Guths.Shared.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/Guths.Shared/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Guths.Shared.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/Guths.Shared/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/LeoGuths/guths-shared/guths-shared-CI-pipeline.yaml?style=flat-square&logo=github-actions)](https://github.com/LeoGuths/guths-shared/actions)
+[![Top Language](https://img.shields.io/github/languages/top/LeoGuths/guths-shared.svg?style=flat-square)](https://github.com/LeoGuths/guths-shared)
+[![.NET](https://img.shields.io/badge/.NET-9.0-blue?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
+[![GitHub Stars](https://img.shields.io/github/stars/LeoGuths/guths-shared.svg?style=flat-square&logo=github)](https://github.com/LeoGuths/guths-shared/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/LeoGuths/guths-shared.svg?style=flat-square&logo=github)](https://github.com/LeoGuths/guths-shared/issues)
+[![Code Size](https://img.shields.io/github/languages/code-size/LeoGuths/guths-shared.svg?style=flat-square)](https://github.com/LeoGuths/guths-shared)
+
 Uma biblioteca compartilhada para aplicações .NET que fornece funcionalidades comuns e reutilizáveis para projetos web, APIs e sistemas distribuídos.
 
 ## 🚀 Funcionalidades
@@ -36,7 +45,7 @@ builder.Services.AddSharedConfiguration();
 var app = builder.Build();
 
 // Configurar pipeline da aplicação
-app.AddSharedConfiguration("ScalarTitle");
+app.AddSharedConfiguration();
 
 app.Run();
 ```
@@ -67,7 +76,7 @@ builder.Services.AddSharedConfiguration(sharedConfigurationOptions);
 
 var app = builder.Build();
 
-app.AddSharedConfiguration("ScalarTitle");
+app.AddSharedConfiguration();
 
 app.Run();
 ```
@@ -233,7 +242,7 @@ UseMetrics      -> Métricas da aplicação
 ### Result Pattern
 
 ```csharp
-public class UserController : MyControllerBase
+public class UserController : ControllerBase
 {
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
@@ -383,11 +392,11 @@ builder.Services.AddSharedConfiguration(sharedConfigurationOptions);
 ### Acesso ao Token
 
 ```csharp
-public class MyService
+public class ExampleService
 {
     private readonly AuthTokenAccessor _tokenAccessor;
     
-    public MyService(AuthTokenAccessor tokenAccessor)
+    public ExampleService(AuthTokenAccessor tokenAccessor)
     {
         _tokenAccessor = tokenAccessor;
     }
