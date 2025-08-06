@@ -18,4 +18,5 @@ public interface IRepository<T>
     Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default);
     Task<bool> ExistsByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken = default);
+    FilterDefinition<T> IdFilter(string id);
 }

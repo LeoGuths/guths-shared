@@ -34,8 +34,7 @@ public sealed class S3StorageService : IStorageService
         {
             ["OriginalFileName"] = fileDto.FileName,
             ["FolderName"] = fileDto.FolderName ?? "root",
-            ["ContentType"] = fileDto.ContentType,
-            ["OperationId"] = Guid.NewGuid().ToString()
+            ["ContentType"] = fileDto.ContentType
         });
 
         _logger.LogInformation("Starting file upload");
