@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 
+using Guths.Shared.Core.Domain.Entities;
 using Guths.Shared.Core.Domain.Interfaces;
 using Guths.Shared.Data.MongoDb.Extensions;
 using Guths.Shared.DTOs.Pagination;
@@ -18,8 +19,8 @@ public class MongoDbRepository<T> : IRepository<T> where T : class
 
     public async Task<T> CreateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        dynamic document = entity;
-        document.Id = Ulid.NewUlid().ToString();
+        if (entity is BaseEntity document)
+            document.Id = Ulid.NewUlid().ToString();
 
         await Collection.InsertOneAsync(entity, cancellationToken: cancellationToken);
 
@@ -91,6 +92,6 @@ public class MongoDbRepository<T> : IRepository<T> where T : class
     public async Task<bool> ExistsAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken = default) =>
         await Collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken) > 0;
 
-    private static FilterDefinition<T> IdFilter(string id) =>
+    public FilterDefinition<T> IdFilter(string id) =>
         Builders<T>.Filter.Eq("_id", id);
 }
