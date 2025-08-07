@@ -19,7 +19,6 @@ public static class CustomSharedConfig
         builder.AddCacheConfiguration();
         builder.AddCorsConfiguration();
         builder.AddGlobalExceptionConfiguration();
-        builder.Services.AddProblemDetails();
         builder.AddLocalizationConfiguration();
         builder.Services.AddJsonConfiguration();
         builder.AddScalarConfiguration();

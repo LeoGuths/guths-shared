@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using Guths.Shared.Core.Exceptions;
 
@@ -17,11 +15,6 @@ namespace Guths.Shared.Web.Handlers;
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
     internal const string UnhandledExceptionMsg = "An unhandled exception has occurred while executing the request.";
-
-    private static readonly JsonSerializerOptions _serializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-    };
 
     private readonly ILogger<GlobalExceptionHandler> _logger;
     private readonly IHostEnvironment _env;
@@ -42,20 +35,13 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         if (exception is ProblemException problemException)
             return await HandleProblemAsync(httpContext, problemException);
 
-        return await HandleErrorAsync(httpContext, exception, cancellationToken);
+        return await HandleErrorAsync(httpContext, exception);
     }
 
     private async ValueTask<bool> HandleProblemAsync(HttpContext httpContext, ProblemException problemException)
     {
-        using var scope = _logger.BeginScope(new Dictionary<string, object>
-        {
-            ["TraceId"] = httpContext.TraceIdentifier,
-            ["RequestPath"] = httpContext.Request.Path,
-            ["RequestMethod"] = httpContext.Request.Method,
-            ["ErrorCode"] = problemException.Error
-        });
-
-        _logger.LogWarning("Business error occurred: {ErrorMessage}", problemException.Message);
+        _logger.LogWarning("Business error occurred: {ErrorMessage} | ErrorCode: {ErrorCode}",
+            problemException.Message, problemException.Error);
 
         if (problemException.InnerException is not null)
         {
@@ -67,7 +53,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         {
             Status = StatusCodes.Status400BadRequest,
             Title = problemException.Error,
-            Detail = problemException.Message,
             Type = "Bad Request",
             Extensions =
             {
@@ -77,7 +62,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
         if (!_env.IsProduction())
         {
-            problemDetails.Extensions["errorCode"] = problemException.Error;
+            problemDetails.Detail = problemException.Message;
 
             if (problemException.InnerException is not null)
             {
@@ -98,7 +83,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
     private ProblemDetails CreateErrorDetails(in HttpContext httpContext, in Exception exception)
     {
-        var errorCode = exception.GetErrorCode();
         var statusCode = httpContext.Response.StatusCode;
         var reasonPhrase = ReasonPhrases.GetReasonPhrase(statusCode);
 
@@ -111,7 +95,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             Title = reasonPhrase,
             Extensions =
             {
-                [nameof(errorCode)] = errorCode,
                 ["traceId"] = httpContext.TraceIdentifier
             }
         };
@@ -125,39 +108,17 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         return problemDetails;
     }
 
-    private static string ToJson(in ProblemDetails problemDetails)
+    private async ValueTask<bool> HandleErrorAsync(HttpContext httpContext, Exception exception)
     {
-        try
-        {
-            return JsonSerializer.Serialize(problemDetails, _serializerOptions);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    private async ValueTask<bool> HandleErrorAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
-    {
-        using var scope = _logger.BeginScope(new Dictionary<string, object>
-        {
-            ["TraceId"] = httpContext.TraceIdentifier,
-            ["RequestPath"] = httpContext.Request.Path,
-            ["RequestMethod"] = httpContext.Request.Method,
-            ["ExceptionType"] = exception.GetType().Name
-        });
-
-        exception.AddErrorCode();
-
         _logger.LogError(exception, "Unhandled exception occurred: {ExceptionMessage}", exception.Message);
 
         var problemDetails = CreateErrorDetails(httpContext, exception);
-        var json = ToJson(problemDetails);
 
-        const string contentType = "application/problem+json";
-        httpContext.Response.ContentType = contentType;
-        await httpContext.Response.WriteAsync(json, cancellationToken);
-
-        return true;
+        return await _problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = problemDetails
+            });
     }
 }
