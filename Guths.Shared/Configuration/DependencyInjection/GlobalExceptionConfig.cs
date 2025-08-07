@@ -14,6 +14,13 @@ public static class GlobalExceptionConfig
         if (!builder.Configuration.GetValue("SharedConfiguration:UseGlobalExceptionHandler", false))
             return;
 
+        builder.Services.AddProblemDetails(configure =>
+        {
+            configure.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+            };
+        });
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     }
 
