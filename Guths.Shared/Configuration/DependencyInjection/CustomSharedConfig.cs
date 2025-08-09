@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Coravel.Scheduling.Schedule.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +17,7 @@ public static class CustomSharedConfig
     {
         builder.ConfigureApplication();
         builder.Services.AddHttpContextAccessor();
-        builder.AddAuthConfiguration(options?.ConfigureAuthorization);
+        builder.AddAuthConfiguration(options?.AuthorizationActions);
         builder.AddCacheConfiguration();
         builder.AddCorsConfiguration();
         builder.AddGlobalExceptionConfiguration();
@@ -25,9 +27,11 @@ public static class CustomSharedConfig
         builder.AddControllerConfiguration();
         builder.AddDefaultResilienceConfiguration();
         builder.AddLoggingConfiguration();
+        builder.AddCoravelConfiguration();
     }
 
-    public static void AddSharedConfiguration(this WebApplication app)
+    public static void AddSharedConfiguration(this WebApplication app,
+        SharedConfigurationOptions? options = null)
     {
         app.UseRouting();
         app.AddAuthConfiguration();
@@ -36,10 +40,12 @@ public static class CustomSharedConfig
         app.AddGlobalExceptionConfiguration();
         app.AddControllerConfiguration();
         app.AddLocalizationConfiguration();
+        app.AddCoravelConfiguration(options?.SchedulerActions);
     }
 }
 
 public sealed class SharedConfigurationOptions
 {
-    public Action<AuthorizationOptions>? ConfigureAuthorization { get; init; }
+    public Action<AuthorizationOptions>? AuthorizationActions { get; init; }
+    public Action<IScheduler>? SchedulerActions { get; init; } = null!;
 }
