@@ -25,8 +25,6 @@ public static class LoggingConfig
     public static void AddLoggingConfiguration(this IHostApplicationBuilder builder)
     {
         var loggingSection = builder.Configuration.GetSection("SharedConfiguration:LoggingConfiguration");
-        if (!loggingSection.Exists())
-            return;
 
         if (loggingSection.GetValue("UseCustomLogger", false))
             builder.Services.AddScoped(typeof(IMyLogger<>), typeof(MyLogger<>));
@@ -36,9 +34,12 @@ public static class LoggingConfig
         if (!builder.Environment.IsProduction())
             builder.Logging.AddConsole();
 
-        var provider = builder.Configuration.GetRequired("OpenTelemetry:Provider");
+        var provider = builder.Configuration.GetValue<string>("OpenTelemetry:Provider");
+        if (string.IsNullOrWhiteSpace(provider))
+            return;
 
-        builder.AddOpenTelemetryLoggingDependencies(provider);
+        if (loggingSection.GetValue("UseLogs", false))
+            builder.AddOpenTelemetryLoggingDependencies(provider);
 
         if (loggingSection.GetValue("UseMetrics", false))
             builder.AddOpenTelemetryMetricsDependencies(provider);
