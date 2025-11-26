@@ -1,23 +1,25 @@
 using System.Diagnostics.CodeAnalysis;
-
 using Guths.Shared.Authentication.OpenApi;
 using Guths.Shared.Core.Extensions;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
 using Scalar.AspNetCore;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class ScalarConfig
+public static class ScalarExtensions
 {
-    public static void AddScalarConfiguration(this IHostApplicationBuilder builder)
+    private const string UseScalarPath = "SharedConfiguration:UseScalar";
+
+    /// <summary>
+    /// Registers Scalar/OpenAPI services, including optional JWT security scheme integration.
+    /// </summary>
+    public static void AddScalarServices(this IHostApplicationBuilder builder)
     {
-        if (!builder.Configuration.GetValue("SharedConfiguration:UseScalar", false))
+        if (!builder.Configuration.GetValue(UseScalarPath, false))
             return;
 
         builder.Services.AddOpenApi(opts =>
@@ -27,8 +29,14 @@ public static class ScalarConfig
         });
     }
 
-    public static void AddScalarConfiguration(this WebApplication app)
+    /// <summary>
+    /// Maps Scalar UI and OpenAPI endpoints into the application's request pipeline.
+    /// </summary>
+    public static void UseScalar(this WebApplication app)
     {
+        if (!app.Configuration.GetValue(UseScalarPath, false))
+            return;
+
         app.MapOpenApi();
 
         app.MapScalarApiReference(options =>

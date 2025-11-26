@@ -1,4 +1,4 @@
-namespace Guths.Shared.Configuration.Options;
+namespace Guths.Shared.Infrastructure.Options;
 
 public sealed record S3StorageOptions
 {

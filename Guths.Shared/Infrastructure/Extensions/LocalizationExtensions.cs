@@ -11,10 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class LocalizationConfig
+public static class LocalizationExtensions
 {
     private static readonly CultureInfo[] _supportedCultures =
     [
@@ -23,9 +23,15 @@ public static class LocalizationConfig
         new(Const.Lang.EsEs)
     ];
 
-    public static void AddLocalizationConfiguration(this IHostApplicationBuilder builder)
+    private const string UseLocalizationPath = "SharedConfiguration:UseLocalization";
+
+    /// <summary>
+    /// Registers localization services, supported cultures, default culture,
+    /// and the custom request culture provider.
+    /// </summary>
+    public static void AddLocalizationServices(this IHostApplicationBuilder builder)
     {
-        if (!builder.Configuration.GetValue("SharedConfiguration:UseLocalization", false))
+        if (!builder.Configuration.GetValue(UseLocalizationPath, false))
             return;
 
         builder.Services.AddLocalization(options => options.ResourcesPath = string.Empty);
@@ -54,9 +60,12 @@ public static class LocalizationConfig
         });
     }
 
-    public static void AddLocalizationConfiguration(this WebApplication app)
+    /// <summary>
+    /// Enables localization middleware and applies configured RequestLocalizationOptions.
+    /// </summary>
+    public static void UseLocalizationServices(this WebApplication app)
     {
-        if (!app.Configuration.GetValue("SharedConfiguration:UseLocalization", false))
+        if (!app.Configuration.GetValue(UseLocalizationPath, false))
             return;
 
         var localizationOptions = app.Services.GetService<IOptions<RequestLocalizationOptions>>()?.Value;

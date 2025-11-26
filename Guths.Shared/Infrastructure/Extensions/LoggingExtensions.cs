@@ -1,28 +1,28 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-
 using Guths.Shared.Core.Extensions;
 using Guths.Shared.Core.Logging;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-
 using AssemblyExtensions = Guths.Shared.Core.Extensions.AssemblyExtensions;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class LoggingConfig
+public static class LoggingExtensions
 {
-    public static void AddLoggingConfiguration(this IHostApplicationBuilder builder)
+
+    /// <summary>
+    /// Configures application logging, including custom loggers and optional OpenTelemetry providers.
+    /// </summary>
+    public static void AddLoggingServices(this IHostApplicationBuilder builder)
     {
         var loggingSection = builder.Configuration.GetSection("SharedConfiguration:LoggingConfiguration");
 
