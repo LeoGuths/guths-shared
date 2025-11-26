@@ -1,6 +1,6 @@
 using Guths.Shared.Core.Constants;
 
-namespace Guths.Shared.Configuration.Options;
+namespace Guths.Shared.Infrastructure.Options;
 
 public sealed record CacheOptions
 {

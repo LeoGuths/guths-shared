@@ -4,12 +4,17 @@ using System.Text.Json.Serialization;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class JsonConfig
+public static class JsonExtensions
 {
-    public static void AddJsonConfiguration(this IServiceCollection services)
+
+    /// <summary>
+    /// Registers global JSON serialization settings for ASP.NET Core.
+    /// This configures the built-in System.Text.Json options used by Minimal APIs.
+    /// </summary>
+    public static void AddJsonServices(this IServiceCollection services)
     {
         services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
         {

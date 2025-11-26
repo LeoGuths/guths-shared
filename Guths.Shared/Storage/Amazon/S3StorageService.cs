@@ -1,10 +1,10 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Core.Exceptions;
 using Guths.Shared.DTOs.File;
+using Guths.Shared.Infrastructure.Options;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,18 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 
-using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Extensions;
+using Guths.Shared.Infrastructure.Options;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class RedisConfig
+public static class RedisCacheExtensions
 {
-    public static void AddCacheConfiguration(this IHostApplicationBuilder builder)
+    public static void AddCacheServices(this IHostApplicationBuilder builder)
     {
         if (!builder.Configuration.GetValue("SharedConfiguration:UseCache", false))
             return;

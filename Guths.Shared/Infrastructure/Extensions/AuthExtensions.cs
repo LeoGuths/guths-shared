@@ -1,13 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-
 using Guths.Shared.Authentication;
 using Guths.Shared.Authentication.Models;
-using Guths.Shared.Configuration.Options;
 using Guths.Shared.Core.Constants;
 using Guths.Shared.Core.Extensions;
+using Guths.Shared.Infrastructure.Options;
 using Guths.Shared.Web.Middlewares;
-
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -18,15 +16,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Guths.Shared.Configuration.DependencyInjection;
+namespace Guths.Shared.Infrastructure.Extensions;
 
 [ExcludeFromCodeCoverage]
-public static class AuthConfig
+public static class AuthExtensions
 {
-    public static void AddAuthConfiguration(this IHostApplicationBuilder builder,
+    private const string UseAuthPath = "SharedConfiguration:UseAuth";
+
+    /// <summary>
+    /// Configures authentication, authorization, JWT, cookies, and user accessors.
+    /// </summary>
+    public static void UseAuthSetup(this IHostApplicationBuilder builder,
         Action<AuthorizationOptions>? configureAuthorization = null)
     {
-        if (!builder.Configuration.GetValue("SharedConfiguration:UseAuth", false))
+        if (!builder.Configuration.GetValue(UseAuthPath, false))
             return;
 
         builder.Services.AddAuthentication(options =>
@@ -73,14 +76,17 @@ public static class AuthConfig
             builder.Services.AddAuthorization();
 
         builder.Services.AddScoped<AuthTokenAccessor>();
-        builder.Services.AddAuthenticatedUser();
+        builder.Services.AddAuthenticatedUserAccessor();
 
         builder.Services.Configure<AuthSettings>(builder.Configuration.GetSection("AuthSettings"));
     }
 
-    public static void AddAuthConfiguration(this WebApplication app)
+    /// <summary>
+    /// Adds authentication and authorization middleware to the request pipeline.
+    /// </summary>
+    public static void UseAuthSetup(this WebApplication app)
     {
-        if (!app.Configuration.GetValue("SharedConfiguration:UseAuth", false))
+        if (!app.Configuration.GetValue(UseAuthPath, false))
             return;
 
         app.UseAuthentication();
@@ -88,7 +94,7 @@ public static class AuthConfig
         app.UseMiddleware<AuthenticatedUserMiddleware>();
     }
 
-    private static void AddAuthenticatedUser(this IServiceCollection services)
+    private static void AddAuthenticatedUserAccessor(this IServiceCollection services)
     {
         services.AddScoped<AuthenticatedUser>(provider =>
         {

@@ -7,7 +7,7 @@ public static class Const
 {
     public static class Application
     {
-        public const string CorsPolicyName = "All";
+        public const string CorsPolicyName = "MyCorsPolicy";
     }
 
     public static class Api

@@ -1,20 +1,25 @@
 using System.Diagnostics.CodeAnalysis;
-
 using Amazon;
 using Amazon.Extensions.NETCore.Setup;
-
 using Guths.Shared.Core.Extensions;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace Guths.Shared.Configuration;
+namespace Guths.Shared.Infrastructure;
 
 [ExcludeFromCodeCoverage]
-public static class ApplicationSettingsConfig
+public static class ApplicationSettingsExtensions
 {
     private static readonly TimeSpan _defaultReloadInterval = TimeSpan.FromMinutes(5);
 
+    /// <summary>
+    /// Loads application configuration settings from AWS Parameter Store when enabled,
+    /// otherwise falls back to environment-specific JSON configuration files.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended to run early in the application bootstrap process,
+    /// typically during the host building phase.
+    /// </remarks>
     public static void ConfigureApplication(this IHostApplicationBuilder builder)
     {
         if (builder.Configuration.GetValue("SharedConfiguration:UseAwsParameterStore", false))
