@@ -63,7 +63,7 @@ public sealed class AuthenticatedUserTests
     {
         var claims = ValidClaims()
             .Where(c => c.Type != Config.Claim.UserTokenTypeClaimType)
-            .Append(new Claim(Config.Claim.UserTokenTypeClaimType, "access_token"))
+            .Append(new Claim(Config.Claim.UserTokenTypeClaimType, Config.Auth.AccessTokenCookieName))
             .ToList();
 
         var user = new AuthenticatedUser(claims);

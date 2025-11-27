@@ -21,4 +21,10 @@ public static class Config
 
         public const string RefreshToken = "refresh";
     }
+
+    public static class Auth
+    {
+        public const string AccessTokenCookieName = "access_token";
+        public const string RefreshTokenCookieName = "refresh_token";
+    }
 }

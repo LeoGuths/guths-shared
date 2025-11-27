@@ -6,7 +6,6 @@ using Guths.Shared.Core.Constants;
 using Guths.Shared.Core.Extensions;
 using Guths.Shared.Infrastructure.Options;
 using Guths.Shared.Web.Middlewares;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -36,8 +35,6 @@ public static class AuthExtensions
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
             })
             .AddJwtBearer(options =>
             {
@@ -51,6 +48,17 @@ public static class AuthExtensions
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ClockSkew = TimeSpan.FromMinutes(1)
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.Request.Cookies.TryGetValue(Config.Auth.AccessTokenCookieName, out var token))
+                            context.Token = token;
+
+                        return Task.CompletedTask;
+                    }
                 };
             })
             .AddCookie(options =>
@@ -66,8 +74,6 @@ public static class AuthExtensions
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     return Task.CompletedTask;
                 };
-                options.ExpireTimeSpan = TimeSpan.FromHours(1);
-                options.SlidingExpiration = true;
             });
 
         if (configureAuthorization is not null)
