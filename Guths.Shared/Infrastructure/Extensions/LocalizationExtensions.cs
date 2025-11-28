@@ -46,7 +46,7 @@ public static class LocalizationExtensions
             {
                 var userLanguage = context.Request.Headers[Const.Api.Header.UserLanguageHeaderName].ToString();
                 if (string.IsNullOrWhiteSpace(userLanguage))
-                    return Task.FromResult<ProviderCultureResult>(null!)!;
+                    userLanguage = Const.Lang.EnUs;
 
                 var userLanguages = userLanguage.Split(',')
                     .Select(lang => lang.Split(';').First().Trim())
