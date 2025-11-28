@@ -4,7 +4,7 @@ namespace Guths.Shared.Helpers;
 
 public static class CookieOptionsHelper
 {
-    public static CookieOptions GetCookieOptions(double? expirationInHours = null)
+    public static CookieOptions GetCookieOptions(double? expirationInMinutes = null)
     {
         return new CookieOptions
         {
@@ -12,8 +12,8 @@ public static class CookieOptionsHelper
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Path = "/",
-            Expires = expirationInHours is not null
-                ? DateTimeOffset.UtcNow.AddHours(expirationInHours.Value)
+            Expires = expirationInMinutes is not null
+                ? DateTimeOffset.UtcNow.AddMinutes(expirationInMinutes.Value)
                 : DateTimeOffset.UtcNow.AddDays(7)
         };
     }
