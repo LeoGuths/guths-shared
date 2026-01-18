@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace Guths.Shared.Authentication.OpenApi;
 
@@ -23,9 +23,9 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
 
         if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
         {
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            var requirements = new Dictionary<string, IOpenApiSecurityScheme>
             {
-                ["Bearer"] = new()
+                ["Bearer"] = new OpenApiSecurityScheme
                 {
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer",
@@ -37,18 +37,11 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
             document.Components ??= new OpenApiComponents();
             document.Components.SecuritySchemes = requirements;
 
-            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations ?? []))
             {
-                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                operation.Value.Security?.Add(new OpenApiSecurityRequirement
                 {
-                    [new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Id = "Bearer",
-                            Type = ReferenceType.SecurityScheme
-                        }
-                    }] = []
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
             }
         }
