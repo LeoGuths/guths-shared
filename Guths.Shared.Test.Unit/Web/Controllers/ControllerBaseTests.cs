@@ -1,11 +1,7 @@
 using Guths.Shared.Core.Constants;
-
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
 using Guths.Shared.Core.OperationResults;
-using Guths.Shared.Web.Controllers;
-
 using ControllerBase = Guths.Shared.Web.Controllers.ControllerBase;
 
 namespace Guths.Shared.Test.Unit.Web.Controllers;
