@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Guths.Shared.Infrastructure.Extensions;
@@ -54,8 +55,38 @@ public static class AuthExtensions
                 {
                     OnMessageReceived = context =>
                     {
+                        var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+                        var logger = loggerFactory?.CreateLogger("AuthEvents");
+
                         if (context.Request.Cookies.TryGetValue(Config.Auth.AccessTokenCookieName, out var token))
+                        {
+                            logger?.LogInformation("OnMessageReceived: cookie '{CookieName}' found (length {Len}).", Config.Auth.AccessTokenCookieName, token?.Length ?? 0);
                             context.Token = token;
+                        }
+                        else
+                        {
+                            var authHeader = context.Request.Headers["Authorization"].ToString();
+                            logger?.LogInformation("OnMessageReceived: cookie not found. Authorization header: '{AuthHeader}'", authHeader);
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+                        var logger = loggerFactory?.CreateLogger("AuthEvents");
+
+                        var sub = context.Principal?.FindFirst("sub")?.Value ?? context.Principal?.Identity?.Name;
+                        logger?.LogInformation("OnTokenValidated: token validated for subject '{sub}'", sub);
+
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+                        var logger = loggerFactory?.CreateLogger("AuthEvents");
+
+                        logger?.LogWarning(context.Exception, "OnAuthenticationFailed: authentication failed");
 
                         return Task.CompletedTask;
                     }
