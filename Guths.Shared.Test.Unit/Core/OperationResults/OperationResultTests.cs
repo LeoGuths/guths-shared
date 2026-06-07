@@ -1,3 +1,4 @@
+using FluentValidation.Results;
 using Guths.Shared.Core.OperationResults;
 
 namespace Guths.Shared.Test.Unit.Core.OperationResults;
@@ -11,6 +12,7 @@ public sealed class OperationResultTests
 
         Assert.True(result.IsSuccess);
         Assert.False(result.IsForbidden);
+        Assert.False(result.IsNotFound);
         Assert.Empty(result.Messages);
         Assert.Empty(result.Validations);
     }
@@ -28,8 +30,8 @@ public sealed class OperationResultTests
     [Fact]
     public void Fail_WithValidation_ShouldSetIsSuccessFalse_AndValidation()
     {
-        var validation = new ValidationError { Field = "Email", Message = "Invalid format" };
-        var result = OperationResult.Fail(validation);
+        var validation = new ValidationFailure("Email", "Invalid format");
+        var result = OperationResult.Fail([validation]);
 
         Assert.False(result.IsSuccess);
         Assert.Single(result.Validations);
@@ -43,5 +45,17 @@ public sealed class OperationResultTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsForbidden);
+        Assert.False(result.IsNotFound);
+    }
+
+    [Fact]
+    public void NotFound_ShouldSetIsNotFound()
+    {
+        var result = OperationResult.NotFound("Not found");
+
+        Assert.False(result.IsSuccess);
+        Assert.False(result.IsForbidden);
+        Assert.True(result.IsNotFound);
+        Assert.Contains("Not found", result.Messages);
     }
 }

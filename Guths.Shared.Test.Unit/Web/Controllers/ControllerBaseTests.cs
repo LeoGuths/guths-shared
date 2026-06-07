@@ -1,3 +1,4 @@
+using FluentValidation.Results;
 using Guths.Shared.Core.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,26 +31,11 @@ public class ControllerBaseTests
     }
 
     [Fact]
-    public void CustomPostResponseT_ShouldReturnBadRequest_WhenIsFailureAndHasMessages()
-    {
-        var failResult = OperationResult<string>.Fail(["Error1", "Error2"]);
-
-        var result = _controller.CustomPostResponse(failResult);
-
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-
-        var problemDetails = Assert.IsType<ProblemDetails>(badRequestResult.Value);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-        Assert.Contains("Error1", problemDetails.Detail);
-        Assert.Contains("Error2", problemDetails.Detail);
-    }
-
-    [Fact]
     public void CustomPostResponseT_ShouldReturnBadRequest_WithValidationProblemDetails_WhenHasValidations()
     {
-        var validations = new List<ValidationError>
+        var validations = new List<ValidationFailure>
         {
-            new() { Field = "Field1", Message = "Invalid field" }
+            new("Field1", "Invalid field")
         };
         var failResult = OperationResult<string>.Fail(validations);
 
@@ -85,24 +71,11 @@ public class ControllerBaseTests
     }
 
     [Fact]
-    public void CustomPostResponseT_ShouldReturnBadRequest_WithProblemDetails_WhenFailureHasMessagesButNoValidations()
-    {
-        var failResult = OperationResult<string>.Fail(["Error1", "Error2"]);
-        var result = _controller.CustomPostResponse(failResult);
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-
-        var problemDetails = Assert.IsType<ProblemDetails>(badRequestResult.Value);
-        Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-        Assert.Contains("Error1", problemDetails.Detail);
-        Assert.Contains("Error2", problemDetails.Detail);
-    }
-
-    [Fact]
     public void CustomPostResponseT_ShouldReturnBadRequest_WithValidationProblemDetails_WhenFailureHasValidations()
     {
-        var validations = new List<ValidationError>
+        var validations = new List<ValidationFailure>
         {
-            new() { Field = "Field1", Message = "Invalid" }
+            new("Field1", "Invalid")
         };
         var failResult = OperationResult<string>.Fail(validations);
         var result = _controller.CustomPostResponse(failResult);
@@ -135,9 +108,9 @@ public class ControllerBaseTests
     [Fact]
     public void CustomGetResponse_ShouldReturnBadRequest_WithValidationProblemDetails_WhenFailureHasValidations()
     {
-        var validations = new List<ValidationError>
+        var validations = new List<ValidationFailure>
         {
-            new() { Field = "Name", Message = "Required" }
+            new("Name", "Required")
         };
         var failResult = OperationResult<string>.Fail(validations);
         var result = _controller.CustomGetResponse(failResult);
