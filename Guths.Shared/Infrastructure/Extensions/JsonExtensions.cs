@@ -9,7 +9,6 @@ namespace Guths.Shared.Infrastructure.Extensions;
 [ExcludeFromCodeCoverage]
 public static class JsonExtensions
 {
-
     /// <summary>
     /// Registers global JSON serialization settings for ASP.NET Core.
     /// This configures the built-in System.Text.Json options used by Minimal APIs.
@@ -21,7 +20,7 @@ public static class JsonExtensions
             options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
             options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
     }
 }

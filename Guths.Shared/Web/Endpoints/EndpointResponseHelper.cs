@@ -14,6 +14,9 @@ public static class EndpointResponseHelper
         if (result.IsForbidden)
             return Results.Forbid();
 
+        if (result.IsNotFound)
+            return Results.NotFound();
+
         return !result.IsSuccess
             ? FailResult(result)
             : Results.NoContent();
@@ -35,11 +38,21 @@ public static class EndpointResponseHelper
     public static IResult CustomGet<T>(OperationResult<T> result) where T : class =>
         !result.IsSuccess ? FailResult(result) : Results.Ok(result.Value);
 
-    public static IResult CustomUpsert(OperationResult result) =>
-        !result.IsSuccess ? FailResult(result) : Results.NoContent();
+    public static IResult CustomUpsert(OperationResult result)
+    {
+        if (result.IsNotFound)
+            return Results.NotFound();
 
-    public static IResult CustomDelete(OperationResult result) =>
-        !result.IsSuccess ? FailResult(result) : Results.NoContent();
+        return !result.IsSuccess ? FailResult(result) : Results.NoContent();
+    }
+
+    public static IResult CustomDelete(OperationResult result)
+    {
+        if (result.IsNotFound)
+            return Results.NotFound();
+
+        return !result.IsSuccess ? FailResult(result) : Results.NoContent();
+    }
 
     public static IResult CustomFile<T>(OperationResult<T> result) where T : DownloadFileResult
     {
@@ -61,9 +74,6 @@ public static class EndpointResponseHelper
 
     private static IResult FailResult(IOperationResult result)
     {
-        if (result.Validations.Count is 0 && result.Messages.Count is 0)
-            return Results.NotFound();
-
         if (result.Validations.Count is 0)
             return Results.Problem(
                 title: "Request failed.",

@@ -1,3 +1,4 @@
+using FluentValidation.Results;
 using Guths.Shared.Core.OperationResults;
 
 namespace Guths.Shared.Test.Unit.Core.OperationResults;
@@ -18,6 +19,7 @@ public sealed class OperationResultGenericTests
         Assert.True(result.IsSuccess);
         Assert.Equal(dummy, result.Value);
         Assert.False(result.IsForbidden);
+        Assert.False(result.IsNotFound);
     }
 
     [Fact]
@@ -34,8 +36,8 @@ public sealed class OperationResultGenericTests
     [Fact]
     public void Fail_WithValidation_ShouldSetValidation()
     {
-        var validation = new ValidationError { Field = "Age", Message = "Must be positive" };
-        var result = OperationResult<Dummy>.Fail(validation);
+        var validation = new ValidationFailure("Age", "Must be positive");
+        var result = OperationResult<Dummy>.Fail([validation]);
 
         Assert.Single(result.Validations);
         Assert.False(result.IsSuccess);
@@ -49,5 +51,17 @@ public sealed class OperationResultGenericTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsForbidden);
+        Assert.False(result.IsNotFound);
+    }
+
+    [Fact]
+    public void NotFound_ShouldSetIsNotFoundTrue()
+    {
+        var result = OperationResult<Dummy>.NotFound("Not found");
+
+        Assert.False(result.IsSuccess);
+        Assert.False(result.IsForbidden);
+        Assert.True(result.IsNotFound);
+        Assert.Contains("Not found", result.Messages);
     }
 }
