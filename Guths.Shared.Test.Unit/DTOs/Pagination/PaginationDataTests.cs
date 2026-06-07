@@ -23,8 +23,8 @@ public sealed class PaginationDataTests
     [Theory]
     [InlineData(0, 10, 1)]
     [InlineData(10, 10, 1)]
-    [InlineData(20, 10, 1)]
-    [InlineData(100, 10, 9)]
+    [InlineData(20, 10, 2)]
+    [InlineData(100, 10, 10)]
     public void LastPage_ShouldReturnCorrectValue(long totalRecords, int pageSize, int expectedLastPage)
     {
         var data = new PaginationData
@@ -49,7 +49,8 @@ public sealed class PaginationDataTests
     [Theory]
     [InlineData(1, true)]
     [InlineData(7, true)]
-    [InlineData(8, false)]
+    [InlineData(8, true)]
+    [InlineData(9, false)]
     public void HasNextPage_ShouldReturnTrue_WhenPageNumberLessThanLastPage(int pageNumber, bool expected)
     {
         var data = new PaginationData

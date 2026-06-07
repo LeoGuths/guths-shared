@@ -45,8 +45,8 @@ public static class SharedConfigurationExtensions
     {
         app.UseRouting();
 
-        app.UseAuthSetup();
         app.AddCorsPolicy();
+        app.UseAuthSetup();
         app.UseScalar();
         app.UseGlobalExceptionHandling();
         app.UseControllerMappings();
