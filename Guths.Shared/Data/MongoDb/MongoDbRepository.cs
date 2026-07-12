@@ -51,8 +51,8 @@ public class MongoDbRepository<T> : IRepository<T> where T : class
         await Collection.Find(filterDefinition ?? Builders<T>.Filter.Empty).ToListAsync(cancellationToken);
 
     public async Task<(ICollection<T> Items, long TotalCount)> GetPagedAsync(PaginationInput paginationInput,
-        FilterDefinition<T>? filter = null, CancellationToken cancellationToken = default) =>
-        await Collection.GetPagedAsync(paginationInput, cancellationToken, filter);
+        FilterDefinition<T>? filter = null, SortDefinition<T>? sort = null, CancellationToken cancellationToken = default) =>
+        await Collection.GetPagedAsync(paginationInput, cancellationToken, filter, sort);
 
     public async Task<IEnumerable<Task>> CursorByProcessAsync(int batchSize, Func<List<T>, Task> action,
         Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default)
