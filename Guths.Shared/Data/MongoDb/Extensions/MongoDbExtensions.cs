@@ -11,12 +11,20 @@ public static class MongoDbExtensions
         this IMongoCollection<T> collection,
         PaginationInput paginationInput,
         CancellationToken cancellationToken,
-        FilterDefinition<T>? filter = null) where T : class
+        FilterDefinition<T>? filter = null,
+        SortDefinition<T>? sort = null) where T : class
     {
         filter ??= FilterDefinitionHelper.New<T>();
 
         var totalCountTask = collection.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-        var itemsTask = collection.Find(filter)
+
+        var query = collection.Find(filter);
+        if (sort is not null)
+        {
+            query = query.Sort(sort);
+        }
+
+        var itemsTask = query
             .Skip((paginationInput.PageNumber - 1) * paginationInput.PageSize)
             .Limit(paginationInput.PageSize)
             .ToListAsync(cancellationToken: cancellationToken);
