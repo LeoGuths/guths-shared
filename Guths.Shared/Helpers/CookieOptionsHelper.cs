@@ -4,13 +4,13 @@ namespace Guths.Shared.Helpers;
 
 public static class CookieOptionsHelper
 {
-    public static CookieOptions GetCookieOptions(DateTimeOffset expires)
+    public static CookieOptions GetCookieOptions(DateTimeOffset expires, bool isLocal = false)
     {
         return new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
+            Secure = !isLocal,
+            SameSite = isLocal ? SameSiteMode.Lax : SameSiteMode.None,
             Path = "/",
             Expires = expires
         };
